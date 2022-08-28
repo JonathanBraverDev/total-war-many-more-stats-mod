@@ -1320,11 +1320,13 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
     db_writer.new_rows.append(newrow)
     newtext = ""
     key = newrow["key"]
-    stats = {}
     if key == "unit_stat_localisations_tooltip_text_stat_melee_attack":
-      newtext += "|| ||Melee hit pct chance formula: " + statstr(kv_rules["melee_hit_chance_base"]) + " + melee_attack - enemy_melee_def, clamp (min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"])  + ")" 
+      newtext += "|| ||Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker melee attack - defender melee defence" + "||"
+      newtext += "(min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"]) + ")"
     if key == "unit_stat_localisations_tooltip_text_stat_melee_defence":
-      newtext += "melee defense when attacked in: " + "side " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_flank"]) * 100) + "% rear " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_rear"]) * 100) + "%" + "||"
+      newtext += "|| ||Melee defense when attacked in: " + "side " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_flank"]) * 100) + "% rear " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_rear"]) * 100) + "%" + "||"
+      newtext += "Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker melee attack - defender melee defence" + "||"
+      newtext += "(min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"]) + ")"
     if key == "unit_stat_localisations_tooltip_text_stat_armour":
       newtext += "|| ||Armour non-ap-dmg-reduction formula: rand(" + statstr(kv_rules["armour_roll_lower_cap"]) + ",1) * armour"
     if key == "unit_stat_localisations_tooltip_text_stat_weapon_damage":
@@ -1381,8 +1383,6 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
       newrow["text"] = moraletext
     
     # todo: more kv_rules values: missile, collision, etc
-    for s in stats:
-      newtext += "||" + s + ": " + statstr(stats[s])
     newrow["text"] += newtext
   db_writer.write()
 
