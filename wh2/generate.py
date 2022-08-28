@@ -11,7 +11,7 @@ output_path="output"
 template_path="template"
 mod_name="many_more_stats"
 install_path=os.path.expanduser("~") + f"/Documents/TWMods/{twgame}/{mod_name}.pack"
-twgame_path="C:/Program Files (x86)/Steam/steamapps/common/Total War WARHAMMER II"
+twgame_path="E:/SteamLibrary/steamapps/common/Total War WARHAMMER II"
 
 argparser = argparse.ArgumentParser(description='Generates the mod packfile to Documents/TWMods/')
 argparser.add_argument('path_to_rpfm_cli',
@@ -1324,8 +1324,7 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
     if key == "unit_stat_localisations_tooltip_text_stat_melee_attack":
       newtext += "|| ||Melee hit pct chance formula: " + statstr(kv_rules["melee_hit_chance_base"]) + " + melee_attack - enemy_melee_def, clamp (min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"])  + ")" 
     if key == "unit_stat_localisations_tooltip_text_stat_melee_defence":
-      stats["melee_defence_direction_penalty_coefficient_flank"] = kv_rules["melee_defence_direction_penalty_coefficient_flank"]
-      stats["melee_defence_direction_penalty_coefficient_rear"] = kv_rules["melee_defence_direction_penalty_coefficient_rear"]
+      newtext += "melee defense when attacked in: " + "side " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_flank"]) * 100) + "% rear " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_rear"]) * 100) + "%" + "||"
     if key == "unit_stat_localisations_tooltip_text_stat_armour":
       newtext += "|| ||Armour non-ap-dmg-reduction formula: rand(" + statstr(kv_rules["armour_roll_lower_cap"]) + ",1) * armour"
     if key == "unit_stat_localisations_tooltip_text_stat_weapon_damage":
@@ -1363,39 +1362,22 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
     
     if key == "unit_stat_localisations_tooltip_text_stat_morale":
       moraletext = "Leadership mechanics: ||"
-      moraletext += "total_hp_loss:" + "||"
-      moraletext += indentstr(2) + " 10%:" + modstr(kv_morale["total_casualties_penalty_10"]) + " 20%:" + modstr(kv_morale["total_casualties_penalty_20"]) + " 30%:" + modstr(kv_morale["total_casualties_penalty_30"]) + " 40%:" + modstr(kv_morale["total_casualties_penalty_40"]) + "||"
-      moraletext += indentstr(2) + " 50%:" + modstr(kv_morale["total_casualties_penalty_50"]) + " 60%:" + modstr(kv_morale["total_casualties_penalty_60"]) + " 70%:" + modstr(kv_morale["total_casualties_penalty_70"]) + " 80%:" + modstr(kv_morale["total_casualties_penalty_80"]) + " 90%:" + modstr(kv_morale["total_casualties_penalty_90"]) + "||"
-      moraletext += "60s_hp_loss:" + " 10%:" + modstr(kv_morale["extended_casualties_penalty_10"]) + " 15%:" + modstr(kv_morale["extended_casualties_penalty_15"]) + " 33%:" + modstr(kv_morale["extended_casualties_penalty_33"])  + " 50%:" + modstr(kv_morale["extended_casualties_penalty_50"])  + " 80%:" + modstr(kv_morale["extended_casualties_penalty_80"]) + "||"
-      moraletext += "4s_hp_loss:" + " 6%:" + modstr(kv_morale["recent_casualties_penalty_6"]) + " 10%:" + modstr(kv_morale["recent_casualties_penalty_10"]) + " 15%:" + modstr(kv_morale["recent_casualties_penalty_15"]) + " 33%:" + modstr(kv_morale["recent_casualties_penalty_33"]) + " 50%:" + modstr(kv_morale["recent_casualties_penalty_50"]) + "||"
-      moraletext += "winning combat:" + " " + modstr(kv_morale["winning_combat"]) + " significantly " + modstr(kv_morale["winning_combat_significantly"])   +  " slightly " + modstr(kv_morale["winning_combat_slightly"]) +"||"
-      moraletext += "losing combat:" + " " + modstr(kv_morale["losing_combat"]) + " significantly " + modstr(kv_morale["losing_combat_significantly"]) + "||"
+      moraletext += "total hp loss:" + "||"
+      moraletext += indentstr(2) + " 10% " + modstr(kv_morale["total_casualties_penalty_10"]) + " 20% " + modstr(kv_morale["total_casualties_penalty_20"]) + " 30 :" + modstr(kv_morale["total_casualties_penalty_30"]) + " 40 :" + modstr(kv_morale["total_casualties_penalty_40"]) + "||"
+      moraletext += indentstr(2) + " 50% " + modstr(kv_morale["total_casualties_penalty_50"]) + " 60% " + modstr(kv_morale["total_casualties_penalty_60"]) + " 70 :" + modstr(kv_morale["total_casualties_penalty_70"]) + " 80 :" + modstr(kv_morale["total_casualties_penalty_80"]) + " 90 :" + modstr(kv_morale["total_casualties_penalty_90"]) + "||"
+      moraletext += "60s hp loss:" + " 10% " + modstr(kv_morale["extended_casualties_penalty_10"]) + " 15% " + modstr(kv_morale["extended_casualties_penalty_15"]) + " 33 :" + modstr(kv_morale["extended_casualties_penalty_33"])  + " 50 :" + modstr(kv_morale["extended_casualties_penalty_50"])  + " 80 :" + modstr(kv_morale["extended_casualties_penalty_80"]) + "||"
+      moraletext += "4s hp loss:" + " 6% " + modstr(kv_morale["recent_casualties_penalty_6"]) + " 10% " + modstr(kv_morale["recent_casualties_penalty_10"]) + " 15 :" + modstr(kv_morale["recent_casualties_penalty_15"]) + " 33 :" + modstr(kv_morale["recent_casualties_penalty_33"]) + " 50 :" + modstr(kv_morale["recent_casualties_penalty_50"]) + "||"
       moraletext += "charging: " + modstr(kv_morale["charge_bonus"]) + " timeout " + statstr(float(kv_morale["charge_timeout"]) / 10) +"s||"
-      moraletext += "attacked in the flank " + modstr(kv_morale["was_attacked_in_flank"]) +"||"
-      moraletext += "attacked in the rear " + modstr(kv_morale["was_attacked_in_rear"]) +"||"
-      moraletext += "high ground vs all enemies " + modstr(kv_morale["ume_encouraged_on_the_hill"]) + "||"
-      moraletext += "defending walled nonbreached settlement " + modstr(kv_morale["ume_encouraged_fortification"]) + "||"
-      moraletext += "defending on a plaza " + modstr(kv_morale["ume_encouraged_settlement_plaza"]) + "||"
-      moraletext += "artillery:" + " hit " + modstr(kv_morale["ume_concerned_damaged_by_artillery"]) + " near miss (<="+ statstr(math.sqrt(float(kv_morale["artillery_near_miss_distance_squared"])))+") " + modstr(kv_morale["ume_concerned_attacked_by_artillery"]) + "||"
-      moraletext += "projectile hit" + modstr(kv_morale["ume_concerned_attacked_by_projectile"]) + "||"
-      moraletext += "vigor: " + colstr("very_tired ", "fatigue_very_tired") + " " + modstr(kv_morale["ume_concerned_very_tired"])  + colstr(" exhausted ", "fatigue_exhausted") + modstr(kv_morale["ume_concerned_exhausted"]) + '||'
+      moraletext += "attacked in: " + " flank " + modstr(kv_morale["was_attacked_in_flank"]) + " rear " + modstr(kv_morale["was_attacked_in_rear"]) + "||"
       moraletext += "army loses: " + modstr(kv_morale["ume_concerned_army_destruction"]) + " power lost: " + statstr((1 - float(kv_morale["army_destruction_alliance_strength_ratio"])) * 100) + "% and balance is " + statstr((1.0 / float(kv_morale["army_destruction_enemy_strength_ratio"])) * 100) + '%||'
-      moraletext += "general's death: " +  modstr(kv_morale["ume_concerned_general_dead"]) + " recently(60s?) " + modstr(kv_morale["ume_concerned_general_died_recently"]) + "||"
+      moraletext += "general's death: " +  modstr(kv_morale["ume_concerned_general_dead"]) + " temporary " + modstr(kv_morale["ume_concerned_general_died_recently"]) + " permanent" + "||"
       moraletext += "surprise enemy discovery: " +  modstr(kv_morale["ume_concerned_surprised"]) + " timeout " + statstr(float(kv_morale["surprise_timeout"]) / 10) +"s||"
-      moraletext += "flanks: " + "secure " + modstr(kv_morale["ume_encouraged_flanks_secure"]) + " 1_exposed " + modstr(kv_morale["ume_concerned_flanks_exposed_single"]) + " 2_exposed " + modstr(kv_morale["ume_concerned_flanks_exposed_multiple"]) + " range " + statstr(kv_morale["open_flanks_effect_range"]) + 'm||'
-      moraletext += "routing balance: (" + statstr(kv_morale["routing_unit_effect_distance_flank"]) + "m in front/flanks)" + "||" 
       moraletext += indentstr(2) + " (allies-enemies, clamp " + negstr(kv_morale["max_routing_friends_to_consider"]) + ")*" + negstr(kv_morale["routing_friends_effect_weighting"]) + " (enemies-allies, clamp " + posstr(kv_morale["max_routing_enemies_to_consider"]) + ")*" + posstr(kv_morale["routing_enemies_effect_weighting"])+ '||'
-      moraletext += "outmatched by enemies: (" + negstr("-1") + " - " + negstr("-7") + ") * " + statstr(kv_morale["enemy_numbers_morale_penalty_multiplier"]) + " range " +  statstr(kv_morale["enemy_effect_range"]) + 'm||'
       moraletext += "wavering:" + " " + statstr(kv_morale["ums_wavering_threshold_lower"])  + "-" + statstr(kv_morale["ums_wavering_threshold_upper"]) + "||"
-      moraletext += indentstr(2) + "must spend " + statstr(float(kv_morale["waver_base_timeout"]) / 10)  + "s wavering before routing||"
+      moraletext += indentstr(2) + "must spend at least" + statstr(float(kv_morale["waver_base_timeout"]) / 10)  + "s wavering before routing||"
       moraletext += "broken:" + " " + statstr(kv_morale["ums_broken_threshold_lower"]) + "-" + statstr(kv_morale["ums_broken_threshold_upper"]) + "||"
-      moraletext += indentstr(2) + "can rally after " + statstr(float(kv_morale["broken_finish_base_timeout"]) / 10) + "s - level * " + statstr(float(kv_morale["broken_finish_timer_experience_bonus"]) / 10) + "s||"
-      moraletext += indentstr(2) + "immune to rout for " + statstr(float(kv_morale["post_rally_no_rout_timer"])) + "s after rallying" + "||"
-      moraletext += indentstr(2) + "won't rally if enemies within? "  + statstr(kv_morale["enemy_effect_range"]) + "m" + "||"
       moraletext += indentstr(2) + "max rally count before shattered "  + statstr(float(kv_morale["shatter_after_rout_count"]) - 1) + "||"
-      moraletext += indentstr(2) + "1st rout shatters units with "  + statstr((1-float(kv_morale["shatter_after_first_rout_if_casulties_higher_than"])) * 100 )  + "% hp loss" + "||"
-      moraletext += indentstr(2) + "2nd rout shatters units with "  + statstr((1-float(kv_morale["shatter_after_second_rout_if_casulties_higher_than"])) * 100 )  + "% hp loss" + "||"
-      moraletext += "shock-rout: last 4s hp loss >=" + statstr(kv_morale["recent_casualties_shock_threshold"]) + "% and morale < 0"
+      moraletext += "shock rout if 4s hp loss is over" + statstr(kv_morale["recent_casualties_shock_threshold"]) + "% and morale < 0"
       newrow["text"] = moraletext
     
     # todo: more kv_rules values: missile, collision, etc
