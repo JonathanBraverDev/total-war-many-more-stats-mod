@@ -1320,48 +1320,8 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
     db_writer.new_rows.append(newrow)
     newtext = ""
     key = newrow["key"]
-    if key == "unit_stat_localisations_tooltip_text_stat_melee_attack":
-      newtext += "|| ||Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker melee attack - defender melee defence" + "||"
-      newtext += "(min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"]) + ")"
-    if key == "unit_stat_localisations_tooltip_text_stat_melee_defence":
-      newtext += "|| ||Melee defense when attacked in: " + "side " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_flank"]) * 100) + "% rear " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_rear"]) * 100) + "%" + "||"
-      newtext += "Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker melee attack - defender melee defence" + "||"
-      newtext += "(min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"]) + ")"
     if key == "unit_stat_localisations_tooltip_text_stat_armour":
       newtext += "|| ||Armour non-ap-dmg-reduction formula: rand(" + statstr(kv_rules["armour_roll_lower_cap"]) + ",1) * armour"
-    if key == "unit_stat_localisations_tooltip_text_stat_weapon_damage":
-      newtext += "|| Terrain height difference dmg mod max: +/-" + statstr(float(kv_rules["melee_height_damage_modifier_max_coefficient"]) * 100) + "% at diff of +/- " + statstr(kv_rules["melee_height_damage_modifier_max_difference"]) + "m, linearly decreasing to 0"
-    if key == "unit_stat_localisations_tooltip_text_stat_charge_bonus":
-      newtext += "|| ||Charge bonus lasts for " + statstr(kv_rules["charge_cool_down_time"] + "s") + " after first contact, linearly going down to 0. ||"
-      newtext += "Charge bonus is added to melee_attack and weapon_damage. Weapon_damage increase is split between ap and base dmg using the ap/base dmg ratio before the bonus.||"
-      newtext += "All attacks on routed units are using charge bonus *" + statstr(kv_rules["pursuit_charge_bonus_modifier"]) + "||"
-      newtext += " || Bracing: ||"
-      newtext += indentstr(2) + "bracing is a multiplier (clamped to " +statstr(kv_rules["bracing_max_multiplier_clamp"]) + ") to the mass of the charged unit for comparison vs a charging one||"
-      newtext += indentstr(2) + "to brace the unit must stand still in formation (exact time to get in formation varies) and not attack/fire||" 
-      newtext += indentstr(2) + "bracing will only apply for attacks coming from the front at max " + statstr(kv_rules["bracing_attack_angle"]) + "* half-angle||"              
-      newtext += indentstr(2) + "bracing from ranks: 1: " + statstr(1.0) + " ranks 2-" + statstr(kv_rules["bracing_calibration_ranks"]) + " add " + statstr((float(kv_rules["bracing_calibration_ranks_multiplier"]) - 1) / (float(kv_rules["bracing_calibration_ranks"])  - 1)) + "||"
-    if key == "unit_stat_localisations_tooltip_text_stat_missile_strength":
-      newtext += "|| Terrain height difference dmg mod max: +/-" + statstr(float(kv_rules["missile_height_damage_modifier_max_coefficient"]) * 100) + "% at diff of +/- " + kv_rules["missile_height_damage_modifier_max_difference"] + "m, linearly decreasing to 0||"
-    if key == "unit_stat_localisations_tooltip_text_scalar_missile_range":
-      newtext += "|| ||Hit chance when shooting targets hiding in forests/scrub:" + statstr((1 - float(kv_rules["missile_target_in_cover_penalty"]))  * 100) + '||'
-      newtext += "Friendly fire uses bigger hitboxes than enemy fire: height *= " + statstr(kv_rules["projectile_friendly_fire_man_height_coefficient"]) + " radius *= " + statstr(kv_rules["projectile_friendly_fire_man_radius_coefficient"]) + "||" 
-      newtext += "Units with " + statstr("dual") + " trajectory will switch their aim to high if "+ statstr(float(kv_rules["unit_firing_line_of_sight_considered_obstructed_ratio"]) * 100) + "% of LOS is obstructed ||"
-      newtext += "Projectiles with high velocity and low aim are much better at hitting moving enemies."
-      # todo: things like missile penetration, lethality seem to contradict other stat descriptions but don't seem obsolete as they weren't there in shogun2
-      # need to do more testing before adding them in
-    if key == "unit_stat_localisations_tooltip_text_scalar_speed":
-      newtext += "|| || Fatigue effects: ||"
-      for fatigue_level in fatigue_order:
-        newtext += fatigue_level + ": "
-        for stat in fatigue_effects[fatigue_level]:
-          newtext += " " + stat_icon[stat] + "" + statstr(float(fatigue_effects[fatigue_level][stat]) * 100) + "%"
-        newtext += "||"
-      newtext += " || Tiring/Resting: ||"
-      kvfatiguevals = ["charging", "climbing_ladders", "combat", "gradient_shallow_movement_multiplier", "gradient_steep_movement_multiplier", "gradient_very_steep_movement_multiplier",
-      "idle", "limbering", "ready", "running", "running_cavalry", "running_artillery_horse", "shooting", "walking", "walking_artillery", "walking_horse_artillery"]
-      for kvfatval in kvfatiguevals:
-        newtext += kvfatval + " " + negmodstr(kv_fatigue[kvfatval]) + "||"
-    
     if key == "unit_stat_localisations_tooltip_text_stat_morale":
       moraletext = "Leadership mechanics: ||"
       moraletext += "total hp loss:" + "||"
@@ -1381,6 +1341,45 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
       moraletext += indentstr(2) + "max rally count before shattered "  + statstr(float(kv_morale["shatter_after_rout_count"]) - 1) + "||"
       moraletext += "shock rout if 4s hp loss is over" + statstr(kv_morale["recent_casualties_shock_threshold"]) + "% and morale < 0"
       newrow["text"] = moraletext
+    if key == "unit_stat_localisations_tooltip_text_scalar_speed":
+      newtext += "|| || Fatigue effects: ||"
+      for fatigue_level in fatigue_order:
+        newtext += fatigue_level + ": "
+        for stat in fatigue_effects[fatigue_level]:
+          newtext += " " + stat_icon[stat] + "" + statstr(float(fatigue_effects[fatigue_level][stat]) * 100) + "%"
+        newtext += "||"
+      newtext += " || Tiring/Resting: ||"
+      kvfatiguevals = ["charging", "climbing_ladders", "combat", "gradient_shallow_movement_multiplier", "gradient_steep_movement_multiplier", "gradient_very_steep_movement_multiplier",
+      "idle", "limbering", "ready", "running", "running_cavalry", "running_artillery_horse", "shooting", "walking", "walking_artillery", "walking_horse_artillery"]
+      for kvfatval in kvfatiguevals:
+        newtext += kvfatval + " " + negmodstr(kv_fatigue[kvfatval]) + "||"
+    if key == "unit_stat_localisations_tooltip_text_stat_melee_attack":
+      newtext += "|| ||Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker melee attack - defender melee defence" + "||"
+      newtext += "(min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"]) + ")"
+    if key == "unit_stat_localisations_tooltip_text_stat_melee_defence":
+      newtext += "|| ||Melee defense when attacked in: " + "side " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_flank"]) * 100) + "% rear " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_rear"]) * 100) + "%" + "||"
+      newtext += "Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker melee attack - defender melee defence" + "||"
+      newtext += "(min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"]) + ")"
+    if key == "unit_stat_localisations_tooltip_text_stat_charge_bonus":
+      newtext += "|| ||Charge bonus lasts for " + statstr(kv_rules["charge_cool_down_time"] + "s") + " after first contact, linearly going down to 0. ||"
+      newtext += "Charge bonus is added to melee_attack and weapon_damage. Weapon_damage increase is split between ap and base dmg using the ap/base dmg ratio before the bonus.||"
+      newtext += "All attacks on routed units are using charge bonus *" + statstr(kv_rules["pursuit_charge_bonus_modifier"]) + "||"
+      newtext += " || Bracing: ||"
+      newtext += indentstr(2) + "bracing is a multiplier (clamped to " +statstr(kv_rules["bracing_max_multiplier_clamp"]) + ") to the mass of the charged unit for comparison vs a charging one||"
+      newtext += indentstr(2) + "to brace the unit must stand still in formation (exact time to get in formation varies) and not attack/fire||" 
+      newtext += indentstr(2) + "bracing will only apply for attacks coming from the front at max " + statstr(kv_rules["bracing_attack_angle"]) + "* half-angle||"              
+      newtext += indentstr(2) + "bracing from ranks: 1: " + statstr(1.0) + " ranks 2-" + statstr(kv_rules["bracing_calibration_ranks"]) + " add " + statstr((float(kv_rules["bracing_calibration_ranks_multiplier"]) - 1) / (float(kv_rules["bracing_calibration_ranks"])  - 1)) + "||"
+    if key == "unit_stat_localisations_tooltip_text_stat_weapon_damage":
+      newtext += "|| Terrain height difference dmg mod max: +/-" + statstr(float(kv_rules["melee_height_damage_modifier_max_coefficient"]) * 100) + "% at diff of +/- " + statstr(kv_rules["melee_height_damage_modifier_max_difference"]) + "m, linearly decreasing to 0"
+    if key == "unit_stat_localisations_tooltip_text_scalar_missile_range":
+      newtext += "|| ||Hit chance when shooting targets hiding in forests/scrub:" + statstr((1 - float(kv_rules["missile_target_in_cover_penalty"]))  * 100) + '||'
+      newtext += "Friendly fire uses bigger hitboxes than enemy fire: height *= " + statstr(kv_rules["projectile_friendly_fire_man_height_coefficient"]) + " radius *= " + statstr(kv_rules["projectile_friendly_fire_man_radius_coefficient"]) + "||" 
+      newtext += "Units with " + statstr("dual") + " trajectory will switch their aim to high if "+ statstr(float(kv_rules["unit_firing_line_of_sight_considered_obstructed_ratio"]) * 100) + "% of LOS is obstructed ||"
+      newtext += "Projectiles with high velocity and low aim are much better at hitting moving enemies."
+      # todo: things like missile penetration, lethality seem to contradict other stat descriptions but don't seem obsolete as they weren't there in shogun2
+      # need to do more testing before adding them in
+    if key == "unit_stat_localisations_tooltip_text_stat_missile_strength":
+      newtext += "|| Terrain height difference dmg mod max: +/-" + statstr(float(kv_rules["missile_height_damage_modifier_max_coefficient"]) * 100) + "% at diff of +/- " + kv_rules["missile_height_damage_modifier_max_difference"] + "m, linearly decreasing to 0||"
     
     # todo: more kv_rules values: missile, collision, etc
     newrow["text"] += newtext
