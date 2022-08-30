@@ -1346,7 +1346,7 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
     newtext = ""
     key = newrow["key"]
     if key == "unit_stat_localisations_tooltip_text_stat_armour":
-      newtext += "|| ||Armour blocks a% of all incoming non" + icon("modifier_icon_armour_piercing") + " damage:" + "||"
+      newtext += "|| ||Armour blocks a percentage of all non " + icon("modifier_icon_armour_piercing") + " damage:" + "||"
       newtext += "random from " + statstr(float(kv_rules["armour_roll_lower_cap"]) * 100) + "% " + icon("icon_stat_armour") + " to " + statstr(100) + "% " + icon("icon_stat_armour") + "||"
       newtext += "max 100" + "|| " + "||"
       newtext += "An attack is physical if not " + icon("modifier_icon_magical") + ", and only flaming if " + icon("modifier_icon_flaming") + "||"
