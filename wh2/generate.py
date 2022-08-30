@@ -495,8 +495,8 @@ def ability_damage_stat(base, ignition, magic, title="dmg"):
 def icon(name):
   return "[[img:ui/skins/default/" + name + ".png]][[/img]]"
 
-def iconf(fullpath):
-  return "[[img:" + fullpath + "]][[/img]]"
+def icon_res(name):
+  return "[[img:ui/campaign ui/effect_bundles/" + name + ".png]][[/img]]"
 
 stat_icon = {"armour": icon("icon_stat_armour"), "melee_damage_ap": "melee_ap ", "fatigue": icon("fatigue"), "accuracy": "accuracy", "morale": icon("icon_stat_morale"), "melee_attack": icon("icon_stat_morale"), "charging": icon("icon_stat_charge_bonus"), "charge_bonus": icon("icon_stat_charge_bonus"), "range": icon("icon_stat_range"), "speed": icon("icon_stat_speed"), "reloading": icon("icon_stat_reload_time"), "melee_attack": icon("icon_stat_attack"), "melee_defence": icon("icon_stat_defence")}
 
@@ -1329,14 +1329,14 @@ with TWDBReader("unit_stats_land_experience_bonuses_tables") as db_reader:
   # ui/skins/default/icon_stat_...
   # ui/skins/default/modifier_icon_...
   # dmg type:
-  # magical: modifier_icon_magical.png
-  # flaming: modifier_icon_flaming.png
+  # magical: modifier_icon_magical
+  # flaming: modifier_icon_flaming
   # res type:
   # ward save: ui/campaign ui/effect_bundles/resistance_ward_save.png
   # phys res: ui/campaign ui/effect_bundles/resistance_physical.png
   # magic res: ui/campaign ui/effect_bundles/resistance_magic.png
   # ranged res: ui/campaign ui/effect_bundles/resistance_missile.png
-  # fire res: ui/campaign ui/effect_bundles/resistance_magic.png
+  # fire res: ui/campaign ui/effect_bundles/resistance_fire.png
   
 # stat descriptions
 with TWLocDBReader("unit_stat_localisations") as db_reader:
@@ -1349,26 +1349,26 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
       newtext += "|| ||Armour blocks a% of all incoming non" + icon("modifier_icon_armour_piercing") + " damage:" + "||"
       newtext += "random from " + statstr(float(kv_rules["armour_roll_lower_cap"]) * 100) + "% " + icon("icon_stat_armour") + " to " + statstr(100) + "% " + icon("icon_stat_armour") + "||"
       newtext += "max 100" + "|| " + "||"
-      newtext += "An attack is physical unless stated otherwise in the unit card" + "||"
+      newtext += "An attack is physical if not " + icon("modifier_icon_magical") + ", and only flaming if " + icon("modifier_icon_flaming") + "||"
       newtext += "Ward save is always active" + "|| " + "||"
       newtext += "All relevant resistances are added up" + "||"
-      newtext += iconf("ui/campaign ui/effect_bundles/resistance_ward_save.png") + " + " + iconf("ui/campaign ui/effect_bundles/resistance_physical.png") + "/" + iconf("ui/campaign ui/effect_bundles/resistance_magic.png") + " + " + iconf("ui/campaign ui/effect_bundles/resistance_missile.png")+ " + " + iconf("ui/campaign ui/effect_bundles/resistance_magic.png") + "||"
+      newtext += icon_res("resistance_ward_save") + " + " + icon_res("resistance_physical") + "/" + icon_res("resistance_magic") + " + " + icon_res("resistance_missile") + " + " + icon_res("resistance_fire") + "||"
       newtext += "max " + statstr(kv_rules["ward_save_max_value"]) + "%"
     if key == "unit_stat_localisations_tooltip_text_stat_morale":
       moraletext = "Leadership mechanics: ||"
       moraletext += "total hp loss:" + "||"
       moraletext += indentstr(2) + " 10% " + modstr(kv_morale["total_casualties_penalty_10"]) + " 20% " + modstr(kv_morale["total_casualties_penalty_20"]) + " 30% " + modstr(kv_morale["total_casualties_penalty_30"]) + " 40% " + modstr(kv_morale["total_casualties_penalty_40"]) + " 50% " + modstr(kv_morale["total_casualties_penalty_50"]) + "||"
       moraletext += indentstr(2) + " 60% " + modstr(kv_morale["total_casualties_penalty_60"]) + " 70% " + modstr(kv_morale["total_casualties_penalty_70"]) + " 80% " + modstr(kv_morale["total_casualties_penalty_80"]) + " 90% " + modstr(kv_morale["total_casualties_penalty_90"]) + " 100% " + "um...?" "||"
-      moraletext += "60s hp loss:" + " 10% " + modstr(kv_morale["extended_casualties_penalty_10"]) + " 15% " + modstr(kv_morale["extended_casualties_penalty_15"]) + " 33% " + modstr(kv_morale["extended_casualties_penalty_33"])  + " 50% " + modstr(kv_morale["extended_casualties_penalty_50"])  + "  80% " + modstr(kv_morale["extended_casualties_penalty_80"]) + "||"
+      moraletext += "60s hp loss:" + " 10% " + modstr(kv_morale["extended_casualties_penalty_10"]) + " 15% " + modstr(kv_morale["extended_casualties_penalty_15"]) + " 33% " + modstr(kv_morale["extended_casualties_penalty_33"]) + " 50% " + modstr(kv_morale["extended_casualties_penalty_50"]) + " 80% " + modstr(kv_morale["extended_casualties_penalty_80"]) + "||"
       moraletext += "4s hp loss:" + " 6% " + modstr(kv_morale["recent_casualties_penalty_6"]) + " 10% " + modstr(kv_morale["recent_casualties_penalty_10"]) + " 15% " + modstr(kv_morale["recent_casualties_penalty_15"]) + " 33% " + modstr(kv_morale["recent_casualties_penalty_33"]) + " 50% " + modstr(kv_morale["recent_casualties_penalty_50"]) + "||"
       moraletext += "charging: " + modstr(kv_morale["charge_bonus"]) + " timeout " + statstr(float(kv_morale["charge_timeout"]) / 10) +"s||"
       moraletext += "attacked in" + " side " + modstr(kv_morale["was_attacked_in_flank"]) + " back " + modstr(kv_morale["was_attacked_in_rear"]) + "||"
       moraletext += "army loses: " + modstr(kv_morale["ume_concerned_army_destruction"]) + " power lost: " + statstr((1 - float(kv_morale["army_destruction_alliance_strength_ratio"])) * 100) + "% and balance is " + statstr((1.0 / float(kv_morale["army_destruction_enemy_strength_ratio"])) * 100) + '%||'
       moraletext += "general's death: " +  modstr(kv_morale["ume_concerned_general_dead"]) + " recent death or retreat " + modstr(kv_morale["ume_concerned_general_died_recently"]) + "||"
-      moraletext += "wavering:" + " " + statstr(kv_morale["ums_wavering_threshold_lower"])  + "-" + statstr(kv_morale["ums_wavering_threshold_upper"]) + "||"
-      moraletext += indentstr(2) + "must spend at least" + statstr(float(kv_morale["waver_base_timeout"]) / 10)  + "s wavering before routing||"
+      moraletext += "wavering:" + " " + statstr(kv_morale["ums_wavering_threshold_lower"]) + "-" + statstr(kv_morale["ums_wavering_threshold_upper"]) + "||"
+      moraletext += indentstr(2) + "must spend at least " + statstr(float(kv_morale["waver_base_timeout"]) / 10)  + "s wavering before routing||"
       moraletext += "broken:" + " " + statstr(kv_morale["ums_broken_threshold_lower"]) + "-" + statstr(kv_morale["ums_broken_threshold_upper"]) + "||"
-      moraletext += indentstr(2) + "max rally count before shattered "  + statstr(float(kv_morale["shatter_after_rout_count"]) - 1) + "||"
+      moraletext += indentstr(2) + "max rally count before shattered " + statstr(float(kv_morale["shatter_after_rout_count"]) - 1) + "||"
       moraletext += "shock rout if 4s hp loss is over " + statstr(kv_morale["recent_casualties_shock_threshold"]) + "% and morale < 0"
       newrow["text"] = moraletext
     if key == "unit_stat_localisations_tooltip_text_scalar_speed":
@@ -1529,4 +1529,4 @@ make_package()
 # todo: projectile table new entry
   # Projectile Vegetation Grace Periods
 
-  # Projectiles now have the ability to pass through trees for a limited time after being created. This is a global rule that applies to all non-artillery units. This behaviour lasts for a limited duration after the projectile is fired, relative to the speed of the projectile. Significantly reducing instances of units firing weapons into trees that are a few feet from them.
+  # Projectiles now have the ability to pass through trees for a limited time after being created. This is a global rule that applies to all non-artillery units. This behaviour lasts for a limited duration after the projectile is fired, relative to the speed of the projectile. Significantly reducing instances of units firing weapons into trees that are a few feet from them.  
