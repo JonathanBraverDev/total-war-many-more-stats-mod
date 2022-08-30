@@ -495,6 +495,9 @@ def ability_damage_stat(base, ignition, magic, title="dmg"):
 def icon(name):
   return "[[img:ui/skins/default/" + name + ".png]][[/img]]"
 
+def iconf(fullpath):
+  return "[[img:" + fullpath + "]][[/img]]"
+
 stat_icon = {"armour": icon("icon_stat_armour"), "melee_damage_ap": "melee_ap ", "fatigue": icon("fatigue"), "accuracy": "accuracy", "morale": icon("icon_stat_morale"), "melee_attack": icon("icon_stat_morale"), "charging": icon("icon_stat_charge_bonus"), "charge_bonus": icon("icon_stat_charge_bonus"), "range": icon("icon_stat_range"), "speed": icon("icon_stat_speed"), "reloading": icon("icon_stat_reload_time"), "melee_attack": icon("icon_stat_attack"), "melee_defence": icon("icon_stat_defence")}
 
 def rank_icon(rank):
@@ -1312,7 +1315,29 @@ with TWDBReader("unit_stats_land_experience_bonuses_tables") as db_reader:
         result[bonus_stat] = statstr(round((30.0 ** growth_rate) * growth_scalar * rank)) + " " + statstr(round((60.0 ** growth_rate) * growth_scalar * rank))
     rank_bonuses[key] = result
 
-
+  # good icons: 
+  # calibration_distance: icon_distance_to_target.png
+  # missile attack: con_stat_ranged_damage_base.png
+  # missile range: icon_stat_range.png
+  # reload time: icon_stat_reload_time.png
+  # ammo: icon_stat_ammo.png
+  # armour: ui/skins/default/icon_stat_armour.png
+  # attack: ui/skins/default/icon_stat_attack.png
+  # defence: ui/skins/default/icon_stat_defence.png
+  # AP melee: modifier_icon_armour_piercing.png
+  # AP ranged: modifier_icon_armour_piercing_ranged.png
+  # ui/skins/default/icon_stat_...
+  # ui/skins/default/modifier_icon_...
+  # dmg type:
+  # magical: modifier_icon_magical.png
+  # flaming: modifier_icon_flaming.png
+  # res type:
+  # ward save: ui/campaign ui/effect_bundles/resistance_ward_save.png
+  # phys res: ui/campaign ui/effect_bundles/resistance_physical.png
+  # magic res: ui/campaign ui/effect_bundles/resistance_magic.png
+  # ranged res: ui/campaign ui/effect_bundles/resistance_missile.png
+  # fire res: ui/campaign ui/effect_bundles/resistance_magic.png
+  
 # stat descriptions
 with TWLocDBReader("unit_stat_localisations") as db_reader:
   db_writer = db_reader.make_writer()
@@ -1321,13 +1346,20 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
     newtext = ""
     key = newrow["key"]
     if key == "unit_stat_localisations_tooltip_text_stat_armour":
-      newtext += "|| ||Armour non-ap-dmg-reduction formula: rand(" + statstr(kv_rules["armour_roll_lower_cap"]) + ",1) * armour"
+      newtext += "|| ||Armour blocks a% of all incoming non" + icon("modifier_icon_armour_piercing") + " damage:" + "||"
+      newtext += "random from " + statstr(float(kv_rules["armour_roll_lower_cap"]) * 100) + "% " + icon("icon_stat_armour") + " to " + statstr(100) + "% " + icon("icon_stat_armour") + "||"
+      newtext += "max 100" + "|| " + "||"
+      newtext += "An attack is physical unless stated otherwise in the unit card" + "||"
+      newtext += "Ward save is always active" + "|| " + "||"
+      newtext += "All relevant resistances are added up" + "||"
+      newtext += iconf("ui/campaign ui/effect_bundles/resistance_ward_save.png") + " + " + iconf("ui/campaign ui/effect_bundles/resistance_physical.png") + "/" + iconf("ui/campaign ui/effect_bundles/resistance_magic.png") + " + " + iconf("ui/campaign ui/effect_bundles/resistance_missile.png")+ " + " + iconf("ui/campaign ui/effect_bundles/resistance_magic.png") + "||"
+      newtext += "max " + statstr(kv_rules["ward_save_max_value"]) + "%"
     if key == "unit_stat_localisations_tooltip_text_stat_morale":
       moraletext = "Leadership mechanics: ||"
       moraletext += "total hp loss:" + "||"
       moraletext += indentstr(2) + " 10% " + modstr(kv_morale["total_casualties_penalty_10"]) + " 20% " + modstr(kv_morale["total_casualties_penalty_20"]) + " 30% " + modstr(kv_morale["total_casualties_penalty_30"]) + " 40% " + modstr(kv_morale["total_casualties_penalty_40"]) + " 50% " + modstr(kv_morale["total_casualties_penalty_50"]) + "||"
       moraletext += indentstr(2) + " 60% " + modstr(kv_morale["total_casualties_penalty_60"]) + " 70% " + modstr(kv_morale["total_casualties_penalty_70"]) + " 80% " + modstr(kv_morale["total_casualties_penalty_80"]) + " 90% " + modstr(kv_morale["total_casualties_penalty_90"]) + " 100% " + "um...?" "||"
-      moraletext += "60s hp loss:" + " 10% " + modstr(kv_morale["extended_casualties_penalty_10"]) + " 15% " + modstr(kv_morale["extended_casualties_penalty_15"]) + " 33% " + modstr(kv_morale["extended_casualties_penalty_33"])  + " 50% " + modstr(kv_morale["extended_casualties_penalty_50"])  + " 80% " + modstr(kv_morale["extended_casualties_penalty_80"]) + "||"
+      moraletext += "60s hp loss:" + " 10% " + modstr(kv_morale["extended_casualties_penalty_10"]) + " 15% " + modstr(kv_morale["extended_casualties_penalty_15"]) + " 33% " + modstr(kv_morale["extended_casualties_penalty_33"])  + " 50% " + modstr(kv_morale["extended_casualties_penalty_50"])  + "  80% " + modstr(kv_morale["extended_casualties_penalty_80"]) + "||"
       moraletext += "4s hp loss:" + " 6% " + modstr(kv_morale["recent_casualties_penalty_6"]) + " 10% " + modstr(kv_morale["recent_casualties_penalty_10"]) + " 15% " + modstr(kv_morale["recent_casualties_penalty_15"]) + " 33% " + modstr(kv_morale["recent_casualties_penalty_33"]) + " 50% " + modstr(kv_morale["recent_casualties_penalty_50"]) + "||"
       moraletext += "charging: " + modstr(kv_morale["charge_bonus"]) + " timeout " + statstr(float(kv_morale["charge_timeout"]) / 10) +"s||"
       moraletext += "attacked in" + " side " + modstr(kv_morale["was_attacked_in_flank"]) + " back " + modstr(kv_morale["was_attacked_in_rear"]) + "||"
@@ -1352,11 +1384,11 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
       for kvfatval in kvfatiguevals:
         newtext += kvfatval + " " + negmodstr(kv_fatigue[kvfatval]) + "||"
     if key == "unit_stat_localisations_tooltip_text_stat_melee_attack":
-      newtext += "|| ||Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker melee attack - defender melee defence" + "||"
+      newtext += "|| ||Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker " + icon("icon_stat_attack") + " - defender " + icon("icon_stat_defence") + "||"
       newtext += "(min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"]) + ")"
     if key == "unit_stat_localisations_tooltip_text_stat_melee_defence":
       newtext += "|| ||Melee defense when attacked in" + " side " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_flank"]) * 100) + "% back " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_rear"]) * 100) + "%" + "||"
-      newtext += "Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker melee attack - defender melee defence" + "||"
+      newtext += "Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker " + icon("icon_stat_attack") + " - defender " + icon("icon_stat_defence") + "||"
       newtext += "(min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"]) + ")"
     if key == "unit_stat_localisations_tooltip_text_stat_charge_bonus":
       newtext += "|| ||Charge bonus lasts for " + statstr(kv_rules["charge_cool_down_time"] + "s") + " after first contact, linearly going down to 0. ||"
