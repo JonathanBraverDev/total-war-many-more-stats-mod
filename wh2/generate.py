@@ -1326,6 +1326,7 @@ with TWDBReader("unit_stats_land_experience_bonuses_tables") as db_reader:
   # defence: ui/skins/default/icon_stat_defence
   # AP melee: modifier_icon_armour_piercing
   # AP ranged: modifier_icon_armour_piercing_ranged
+  # AP explosive: icon_stat_explosive_armour_piercing_damage
   # ui/skins/default/icon_stat_...
   # ui/skins/default/modifier_icon_...
   # dmg type:
@@ -1347,15 +1348,18 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
     key = newrow["key"]
 
     if key == "unit_stat_localisations_tooltip_text_stat_armour":
-      newtext += "|| ||Armour blocks a percentage of all non " + icon("modifier_icon_armour_piercing") + " damage:" + "||"
-      newtext += "random from " + icon("icon_stat_armour") + statstr(float(kv_rules["armour_roll_lower_cap"]) * 100) + "%" + " to " + icon("icon_stat_armour") + statstr(100) + "% " + "||"
-      newtext += "max 100" + "|| " + "||"
-      newtext += "An attack can be physical OR " + icon("modifier_icon_magical") + ", blocked by " + icon_res("resistance_physical") + " OR " + icon_res("resistance_magic") + "||"
-      newtext += "It may be also " + icon("modifier_icon_flaming") + " and/or " + icon("icon_stat_ranged_damage_base") + ", blocked by " + icon_res("resistance_missile") + " and/or " + icon_res("resistance_fire") + "||"
-      newtext += icon_res("resistance_ward_save") + " is always active" + "|| " + "||"
-      newtext += "All relevant resistances are added up" + "||"
-      newtext += icon_res("resistance_ward_save") + " + " + icon_res("resistance_physical") + "/" + icon_res("resistance_magic") + " + " + icon_res("resistance_missile") + " + " + icon_res("resistance_fire") + "||"
-      newtext += "max " + statstr(kv_rules["ward_save_max_value"]) + "%"
+      armourtext = "Survivability mechanics: ||"
+      armourtext += "Armour blocks a percentage of all non " + icon("modifier_icon_armour_piercing") + "/" + icon("modifier_icon_armour_piercing_ranged")+ "/" + icon("icon_stat_explosive_armour_piercing_damage") + " damage:" + "||"
+      armourtext += "random from " + icon("icon_stat_armour") + statstr(float(kv_rules["armour_roll_lower_cap"]) * 100) + "%" + " to " + icon("icon_stat_armour") + statstr(100) + "% " + "||"
+      armourtext += "max 100" + "|| " + "||"
+      armourtext += "An attack can be physical OR " + icon("modifier_icon_magical") + ", blocked by " + icon_res("resistance_physical") + " OR " + icon_res("resistance_magic") + "||"
+      armourtext += "It may also be " + icon("icon_stat_ranged_damage_base") + " and/or " + icon("modifier_icon_flaming") + ", blocked by " + icon_res("resistance_missile") + " and/or " + icon_res("resistance_fire") + "||"
+      armourtext += icon_res("resistance_ward_save") + " is always active" + "|| " + "||"
+      armourtext += "All relevant resistances are added up" + "||"
+      armourtext += icon_res("resistance_ward_save") + " + " + icon_res("resistance_physical") + "/" + icon_res("resistance_magic") + " + " + icon_res("resistance_missile") + " + " + icon_res("resistance_fire") + "||"
+      armourtext += "max " + statstr(kv_rules["ward_save_max_value"]) + "%" + "|| " + "||"
+      armourtext += "All attacks deal an additional 1 unblockable damage"
+      newrow["text"] = armourtext
 
     if key == "unit_stat_localisations_tooltip_text_stat_morale":
       moraletext = "Leadership mechanics: ||"
@@ -1366,8 +1370,8 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
       moraletext += "4s hp loss:" + " 6% " + modstr(kv_morale["recent_casualties_penalty_6"]) + " 10% " + modstr(kv_morale["recent_casualties_penalty_10"]) + " 15% " + modstr(kv_morale["recent_casualties_penalty_15"]) + " 33% " + modstr(kv_morale["recent_casualties_penalty_33"]) + " 50% " + modstr(kv_morale["recent_casualties_penalty_50"]) + "||"
       moraletext += "charging: " + modstr(kv_morale["charge_bonus"]) + " timeout " + statstr(float(kv_morale["charge_timeout"]) / 10) +"s||"
       moraletext += "attacked in" + " side " + modstr(kv_morale["was_attacked_in_flank"]) + " back " + modstr(kv_morale["was_attacked_in_rear"]) + "||"
+      moraletext += "general's death: " + modstr(kv_morale["ume_concerned_general_dead"]) + " recent death or retreat " + modstr(kv_morale["ume_concerned_general_died_recently"]) + "||"
       moraletext += "army loses: " + modstr(kv_morale["ume_concerned_army_destruction"]) + " power lost: " + statstr((1 - float(kv_morale["army_destruction_alliance_strength_ratio"])) * 100) + "% and balance is " + statstr((1.0 / float(kv_morale["army_destruction_enemy_strength_ratio"])) * 100) + '%||'
-      moraletext += "general's death: " +  modstr(kv_morale["ume_concerned_general_dead"]) + " recent death or retreat " + modstr(kv_morale["ume_concerned_general_died_recently"]) + "||"
       moraletext += "wavering:" + " " + statstr(kv_morale["ums_wavering_threshold_lower"]) + "-" + statstr(kv_morale["ums_wavering_threshold_upper"]) + "||"
       moraletext += indentstr(2) + "must spend at least " + statstr(float(kv_morale["waver_base_timeout"]) / 10)  + "s wavering before routing||"
       moraletext += "broken:" + " " + statstr(kv_morale["ums_broken_threshold_lower"]) + "-" + statstr(kv_morale["ums_broken_threshold_upper"]) + "||"
