@@ -498,7 +498,7 @@ def icon(name):
 def icon_res(name):
   return "[[img:ui/campaign ui/effect_bundles/" + name + ".png]][[/img]]"
 
-stat_icon = {"armour": icon("icon_stat_armour"), "melee_damage_ap": "melee_ap ", "fatigue": icon("fatigue"), "accuracy": "accuracy", "morale": icon("icon_stat_morale"), "melee_attack": icon("icon_stat_morale"), "charging": icon("icon_stat_charge_bonus"), "charge_bonus": icon("icon_stat_charge_bonus"), "range": icon("icon_stat_range"), "speed": icon("icon_stat_speed"), "reloading": icon("icon_stat_reload_time"), "melee_attack": icon("icon_stat_attack"), "melee_defence": icon("icon_stat_defence")}
+stat_icon = {"armour": icon("icon_stat_armour"), "melee_damage_ap": icon("modifier_icon_armour_piercing") , "fatigue": icon("fatigue"), "accuracy": "accuracy", "morale": icon("icon_stat_morale"), "melee_attack": icon("icon_stat_morale"), "charging": icon("icon_stat_charge_bonus"), "charge_bonus": icon("icon_stat_charge_bonus"), "range": icon("icon_stat_range"), "speed": icon("icon_stat_speed"), "reloading": icon("icon_stat_reload_time"), "melee_attack": icon("icon_stat_attack"), "melee_defence": icon("icon_stat_defence")}
 
 def rank_icon(rank):
   if int(rank) == 0:
@@ -1316,27 +1316,27 @@ with TWDBReader("unit_stats_land_experience_bonuses_tables") as db_reader:
     rank_bonuses[key] = result
 
   # good icons: 
-  # calibration_distance: icon_distance_to_target.png
-  # missile attack: con_stat_ranged_damage_base.png
-  # missile range: icon_stat_range.png
-  # reload time: icon_stat_reload_time.png
-  # ammo: icon_stat_ammo.png
-  # armour: ui/skins/default/icon_stat_armour.png
-  # attack: ui/skins/default/icon_stat_attack.png
-  # defence: ui/skins/default/icon_stat_defence.png
-  # AP melee: modifier_icon_armour_piercing.png
-  # AP ranged: modifier_icon_armour_piercing_ranged.png
+  # calibration_distance: icon_distance_to_target
+  # missile attack: icon_stat_ranged_damage_base
+  # missile range: icon_stat_range
+  # reload time: icon_stat_reload_time
+  # ammo: icon_stat_ammo
+  # armour: ui/skins/default/icon_stat_armour
+  # attack: ui/skins/default/icon_stat_attack
+  # defence: ui/skins/default/icon_stat_defence
+  # AP melee: modifier_icon_armour_piercing
+  # AP ranged: modifier_icon_armour_piercing_ranged
   # ui/skins/default/icon_stat_...
   # ui/skins/default/modifier_icon_...
   # dmg type:
   # magical: modifier_icon_magical
   # flaming: modifier_icon_flaming
   # res type:
-  # ward save: ui/campaign ui/effect_bundles/resistance_ward_save.png
-  # phys res: ui/campaign ui/effect_bundles/resistance_physical.png
-  # magic res: ui/campaign ui/effect_bundles/resistance_magic.png
-  # ranged res: ui/campaign ui/effect_bundles/resistance_missile.png
-  # fire res: ui/campaign ui/effect_bundles/resistance_fire.png
+  # ward save: ui/campaign ui/effect_bundles/resistance_ward_save
+  # phys res: ui/campaign ui/effect_bundles/resistance_physical
+  # magic res: ui/campaign ui/effect_bundles/resistance_magic
+  # ranged res: ui/campaign ui/effect_bundles/resistance_missile
+  # fire res: ui/campaign ui/effect_bundles/resistance_fire
   
 # stat descriptions
 with TWLocDBReader("unit_stat_localisations") as db_reader:
@@ -1345,15 +1345,18 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
     db_writer.new_rows.append(newrow)
     newtext = ""
     key = newrow["key"]
+
     if key == "unit_stat_localisations_tooltip_text_stat_armour":
       newtext += "|| ||Armour blocks a percentage of all non " + icon("modifier_icon_armour_piercing") + " damage:" + "||"
-      newtext += "random from " + statstr(float(kv_rules["armour_roll_lower_cap"]) * 100) + "% " + icon("icon_stat_armour") + " to " + statstr(100) + "% " + icon("icon_stat_armour") + "||"
+      newtext += "random from " + icon("icon_stat_armour") + statstr(float(kv_rules["armour_roll_lower_cap"]) * 100) + "%" + " to " + icon("icon_stat_armour") + statstr(100) + "% " + "||"
       newtext += "max 100" + "|| " + "||"
-      newtext += "An attack is physical if not " + icon("modifier_icon_magical") + ", and only flaming if " + icon("modifier_icon_flaming") + "||"
-      newtext += "Ward save is always active" + "|| " + "||"
+      newtext += "An attack can be physical OR " + icon("modifier_icon_magical") + ", blocked by " + icon_res("resistance_physical") + " OR " + icon_res("resistance_magic") + "||"
+      newtext += "It may be also " + icon("modifier_icon_flaming") + " and/or " + icon("icon_stat_ranged_damage_base") + ", blocked by " + icon_res("resistance_missile") + " and/or " + icon_res("resistance_fire") + "||"
+      newtext += icon_res("resistance_ward_save") + " is always active" + "|| " + "||"
       newtext += "All relevant resistances are added up" + "||"
       newtext += icon_res("resistance_ward_save") + " + " + icon_res("resistance_physical") + "/" + icon_res("resistance_magic") + " + " + icon_res("resistance_missile") + " + " + icon_res("resistance_fire") + "||"
       newtext += "max " + statstr(kv_rules["ward_save_max_value"]) + "%"
+
     if key == "unit_stat_localisations_tooltip_text_stat_morale":
       moraletext = "Leadership mechanics: ||"
       moraletext += "total hp loss:" + "||"
@@ -1371,6 +1374,7 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
       moraletext += indentstr(2) + "max rally count before shattered " + statstr(float(kv_morale["shatter_after_rout_count"]) - 1) + "||"
       moraletext += "shock rout if 4s hp loss is over " + statstr(kv_morale["recent_casualties_shock_threshold"]) + "% and morale < 0"
       newrow["text"] = moraletext
+
     if key == "unit_stat_localisations_tooltip_text_scalar_speed":
       newtext += "|| || Fatigue effects: ||"
       for fatigue_level in fatigue_order:
@@ -1378,18 +1382,22 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
         for stat in fatigue_effects[fatigue_level]:
           newtext += " " + stat_icon[stat] + "" + statstr(float(fatigue_effects[fatigue_level][stat]) * 100) + "%"
         newtext += "||"
+
       newtext += " || Tiring/Resting per 1/10 second: ||"
       kvfatiguevals = ["charging", "climbing_ladders", "combat", "gradient_shallow_movement_multiplier", "gradient_steep_movement_multiplier", "gradient_very_steep_movement_multiplier",
       "idle", "limbering", "ready", "running", "running_cavalry", "running_artillery_horse", "shooting", "walking", "walking_artillery", "walking_horse_artillery"]
       for kvfatval in kvfatiguevals:
         newtext += kvfatval + " " + negmodstr(kv_fatigue[kvfatval]) + "||"
+
     if key == "unit_stat_localisations_tooltip_text_stat_melee_attack":
       newtext += "|| ||Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker " + icon("icon_stat_attack") + " - defender " + icon("icon_stat_defence") + "||"
       newtext += "(min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"]) + ")"
+
     if key == "unit_stat_localisations_tooltip_text_stat_melee_defence":
       newtext += "|| ||Melee defense when attacked in" + " side " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_flank"]) * 100) + "% back " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_rear"]) * 100) + "%" + "||"
       newtext += "Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker " + icon("icon_stat_attack") + " - defender " + icon("icon_stat_defence") + "||"
       newtext += "(min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"]) + ")"
+
     if key == "unit_stat_localisations_tooltip_text_stat_charge_bonus":
       newtext += "|| ||Charge bonus lasts for " + statstr(kv_rules["charge_cool_down_time"] + "s") + " after first contact, linearly going down to 0. ||"
       newtext += "Charge bonus is added to melee_attack and weapon_damage. Weapon_damage increase is split between ap and base dmg using the ap/base dmg ratio before the bonus.||"
@@ -1399,8 +1407,10 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
       newtext += indentstr(2) + "to brace the unit must stand still in formation (exact time to get in formation varies) and not attack/fire||" 
       newtext += indentstr(2) + "bracing will only apply for attacks coming from the front at max " + statstr(kv_rules["bracing_attack_angle"]) + "* half-angle||"              
       newtext += indentstr(2) + "bracing from ranks: 1: " + statstr(1.0) + " ranks 2-" + statstr(kv_rules["bracing_calibration_ranks"]) + " add " + statstr((float(kv_rules["bracing_calibration_ranks_multiplier"]) - 1) / (float(kv_rules["bracing_calibration_ranks"])  - 1)) + "||"
+
     if key == "unit_stat_localisations_tooltip_text_stat_weapon_damage":
       newtext += "|| Terrain height difference dmg mod max: +/-" + statstr(float(kv_rules["melee_height_damage_modifier_max_coefficient"]) * 100) + "% at diff of +/- " + statstr(kv_rules["melee_height_damage_modifier_max_difference"]) + "m, linearly decreasing to 0"
+
     if key == "unit_stat_localisations_tooltip_text_scalar_missile_range":
       newtext += "|| ||Hit chance when shooting targets hiding in forests/scrub:" + statstr((1 - float(kv_rules["missile_target_in_cover_penalty"]))  * 100) + '||'
       newtext += "Friendly fire uses bigger hitboxes than enemy fire: height *= " + statstr(kv_rules["projectile_friendly_fire_man_height_coefficient"]) + " radius *= " + statstr(kv_rules["projectile_friendly_fire_man_radius_coefficient"]) + "||" 
@@ -1408,6 +1418,7 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
       newtext += "Projectiles with high velocity and low aim are much better at hitting moving enemies."
       # todo: things like missile penetration, lethality seem to contradict other stat descriptions but don't seem obsolete as they weren't there in shogun2
       # need to do more testing before adding them in
+
     if key == "unit_stat_localisations_tooltip_text_stat_missile_strength":
       newtext += "|| Terrain height difference dmg mod max: +/-" + statstr(float(kv_rules["missile_height_damage_modifier_max_coefficient"]) * 100) + "% at diff of +/- " + kv_rules["missile_height_damage_modifier_max_difference"] + "m, linearly decreasing to 0||"
     
