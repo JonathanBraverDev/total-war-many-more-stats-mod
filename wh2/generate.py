@@ -262,6 +262,13 @@ ability_phase_attrs = read_to_dict_of_lists(TWDBReader("special_ability_phase_at
 # replenish_ammo: How much ammunition we want to replenish when phase starts (can be negative if we want to spend), this value is in percentage of unit max ammo
 ability_phase_details = read_to_dict(TWDBReader("special_ability_phases_tables"), "id")
 
+def ability_damage_stat(base, ignition, magic, title="dmg"):
+  typestr = ""
+  if magic == "true":
+    typestr+="[[img:ui/skins/default/modifier_icon_magical.png]][[/img]]"
+  if float(ignition) != 0:
+    typestr+="[[img:ui/skins/default/modifier_icon_flaming.png]][[/img]]"
+  return title + ": " + statstr(base) + typestr
 
 def ability_phase_details_stats(phaseid, indent = 0, title=""):
   result = ""
@@ -370,35 +377,13 @@ def negstr(stat, indent = 0):
 def indentstr(indent):
   return ("[[col:red]] [[/col]]" * indent)
 
-def modstr(s):
+def modstr(s, affinity = 1):
   stat = float(s)
-  if stat > 0:
+  if affinity * stat > 0:
     return posstr(s)
-  if stat < 0:
+  if affinity * stat < 0:
     return negstr(s)
   return statstr(s)
-
-def negmodstr(s):
-  stat = float(s)
-  if stat < 0:
-    return posstr(s)
-  if stat > 0:
-    return negstr(s)
-  return statstr(s)
-
-def difftostr(stat):
-  if stat > 0:
-    return posstr(stat)
-  if stat < 0:
-    return negstr(stat)
-  return ""
-
-def negdifftostr(stat):
-  if stat > 0:
-    return negstr(stat)
-  if stat < 0:
-    return posstr(stat)
-  return ""
 
 def try_int(val):
   try:
@@ -420,9 +405,6 @@ def numstr(stat):
   if ifstat == fstat:
     return str(int(ifstat))
   return str(round(fstat, 2))
-
-def colstr(s, col):
-  return "[[col:"+ col + "]]" + s +"[[/col]]"
 
 def statstr(stat):
   return "[[col:yellow]]" + numstr(stat) +"[[/col]]"
@@ -484,31 +466,17 @@ def damage_stat(base, ap, ignition, magic, title="dmg"):
     apppct = "("  + statstr(numstr(round(float(ap) * 100 / (float(base) + float(ap)), 2)) + "%") + ")" 
   return title + ": " + statstr(base) + "+ap:" + statstr(ap) + apppct + typestr
 
-def ability_damage_stat(base, ignition, magic, title="dmg"):
-  typestr = ""
-  if magic == "true":
-    typestr+="[[img:ui/skins/default/modifier_icon_magical.png]][[/img]]"
-  if float(ignition) != 0:
-    typestr+="[[img:ui/skins/default/modifier_icon_flaming.png]][[/img]]"
-  return title + ": " + statstr(base) + typestr
-
 def icon(name):
   return "[[img:ui/skins/default/" + name + ".png]][[/img]]"
 
 def icon_res(name):
   return "[[img:ui/campaign ui/effect_bundles/" + name + ".png]][[/img]]"
 
-stat_icon = {"armour": icon("icon_stat_armour"), "melee_damage_ap": icon("modifier_icon_armour_piercing") , "fatigue": icon("fatigue"), "accuracy": "accuracy", "morale": icon("icon_stat_morale"), "melee_attack": icon("icon_stat_morale"), "charging": icon("icon_stat_charge_bonus"), "charge_bonus": icon("icon_stat_charge_bonus"), "range": icon("icon_stat_range"), "speed": icon("icon_stat_speed"), "reloading": icon("icon_stat_reload_time"), "melee_attack": icon("icon_stat_attack"), "melee_defence": icon("icon_stat_defence")}
-
-def rank_icon(rank):
-  if int(rank) == 0:
-    return "[]"
-  return icon("experience_" + str(rank))
 
 def explosion_stats(explosionrow, indent = 0): 
   projectiletext = ""
-  
-  # detonation_duration, detonation_speed, 
+
+  # detonation_duration, detonation_speed,
   # contact_phase_effect -> special_ability_phases
   # fuse_distance_from_target - This will activate the explosion n metres from target. If n is greater than distance to target, then the explosion will occur instantly when the projectile is activated. To get beyond this, add a min_range to the projectile.
   # damage/ap is per entity hit
@@ -1338,7 +1306,14 @@ with TWDBReader("unit_stats_land_experience_bonuses_tables") as db_reader:
   # magic res: ui/campaign ui/effect_bundles/resistance_magic
   # ranged res: ui/campaign ui/effect_bundles/resistance_missile
   # fire res: ui/campaign ui/effect_bundles/resistance_fire
-  
+
+  stat_icon = {"armour": icon("icon_stat_armour"), "melee_damage_ap": icon("modifier_icon_armour_piercing"),
+               "fatigue": icon("fatigue"), "accuracy": "accuracy", "morale": icon("icon_stat_morale"),
+               "charging": icon("icon_stat_charge_bonus"), "charge_bonus": icon("icon_stat_charge_bonus"),
+               "range": icon("icon_stat_range"), "speed": icon("icon_stat_speed"),
+               "reloading": icon("icon_stat_reload_time"), "melee_attack": icon("icon_stat_attack"),
+               "melee_defence": icon("icon_stat_defence")}
+
 # stat descriptions
 with TWLocDBReader("unit_stat_localisations") as db_reader:
   db_writer = db_reader.make_writer()
@@ -1388,10 +1363,10 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
         newtext += "||"
 
       newtext += " || Tiring/Resting per 1/10 second: ||"
-      kvfatiguevals = ["charging", "climbing_ladders", "combat", "gradient_shallow_movement_multiplier", "gradient_steep_movement_multiplier", "gradient_very_steep_movement_multiplier",
-      "idle", "limbering", "ready", "running", "running_cavalry", "running_artillery_horse", "shooting", "walking", "walking_artillery", "walking_horse_artillery"]
+      kvfatiguevals = ["idle", "ready", "walking", "walking_artillery", "running", "running_cavalry", "charging", "combat", "shooting", "climbing_ladders",
+                       "gradient_shallow_movement_multiplier", "gradient_steep_movement_multiplier", "gradient_very_steep_movement_multiplier"]
       for kvfatval in kvfatiguevals:
-        newtext += kvfatval + " " + negmodstr(kv_fatigue[kvfatval]) + "||"
+        newtext += kvfatval + " " + modstr(kv_fatigue[kvfatval], -1) + "||"
 
     if key == "unit_stat_localisations_tooltip_text_stat_melee_attack":
       newtext += "|| ||Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker " + icon("icon_stat_attack") + " - defender " + icon("icon_stat_defence") + "||"
@@ -1475,6 +1450,12 @@ with TWLocDBReader("random_localisation_strings") as db_reader:
           newtext += " " + stat_icon[stat] + " " + statstr(float(fatigue_effects[fatigue_level][stat]) * 100) + "%"
     newrow["text"] += newtext
   db_writer.write()
+
+
+def rank_icon(rank):
+  if int(rank) == 0:
+    return "[]"
+  return icon("experience_" + str(rank))
 
 # misc strings
 with TWLocDBReader("uied_component_texts") as db_reader:
