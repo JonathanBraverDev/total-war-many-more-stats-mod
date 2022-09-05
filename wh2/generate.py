@@ -472,7 +472,6 @@ def icon(name):
 def icon_res(name):
   return "[[img:ui/campaign ui/effect_bundles/" + name + ".png]][[/img]]"
 
-
 def explosion_stats(explosionrow, indent = 0): 
   projectiletext = ""
 
@@ -1324,33 +1323,33 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
 
     if key == "unit_stat_localisations_tooltip_text_stat_armour":
       armourtext = "Survivability mechanics: ||"
-      armourtext += "Armour blocks a percentage of all non " + icon("modifier_icon_armour_piercing") + "/" + icon("modifier_icon_armour_piercing_ranged")+ "/" + icon("icon_stat_explosive_armour_piercing_damage") + " damage:" + "||"
-      armourtext += "random from " + icon("icon_stat_armour") + statstr(float(kv_rules["armour_roll_lower_cap"]) * 100) + "%" + " to " + icon("icon_stat_armour") + statstr(100) + "% " + "||"
-      armourtext += "max 100" + "|| " + "||"
-      armourtext += "An attack can be physical OR " + icon("modifier_icon_magical") + ", blocked by " + icon_res("resistance_physical") + " OR " + icon_res("resistance_magic") + "||"
-      armourtext += "It may also be " + icon("icon_stat_ranged_damage_base") + " and/or " + icon("modifier_icon_flaming") + ", blocked by " + icon_res("resistance_missile") + " and/or " + icon_res("resistance_fire") + "||"
-      armourtext += icon_res("resistance_ward_save") + " is always active" + "|| " + "||"
-      armourtext += "All relevant resistances are added up" + "||"
-      armourtext += icon_res("resistance_ward_save") + " + " + icon_res("resistance_physical") + "/" + icon_res("resistance_magic") + " + " + icon_res("resistance_missile") + " + " + icon_res("resistance_fire") + "||"
-      armourtext += "max " + statstr(kv_rules["ward_save_max_value"]) + "%" + "|| " + "||"
+      armourtext += "Armour blocks a percentage of all non " + icon("modifier_icon_armour_piercing") + "/" + icon("modifier_icon_armour_piercing_ranged")+ "/" + icon("icon_stat_explosive_armour_piercing_damage") + " damage:" + '||'
+      armourtext += "random from " + icon("icon_stat_armour") + statstr(float(kv_rules["armour_roll_lower_cap"]) * 100) + "%" + " to " + icon("icon_stat_armour") + statstr(100) + "% " + '||'
+      armourtext += "max 100" + "|| " + '||'
+      armourtext += "An attack can be physical OR " + icon("modifier_icon_magical") + ", blocked by " + icon_res("resistance_physical") + " OR " + icon_res("resistance_magic") + '||'
+      armourtext += "It may also be " + icon("icon_stat_ranged_damage_base") + " and/or " + icon("modifier_icon_flaming") + ", blocked by " + icon_res("resistance_missile") + " and/or " + icon_res("resistance_fire") + '||'
+      armourtext += icon_res("resistance_ward_save") + " is always active" + "|| " + '||'
+      armourtext += "All relevant resistances are added up" + '||'
+      armourtext += icon_res("resistance_ward_save") + " + " + icon_res("resistance_physical") + "/" + icon_res("resistance_magic") + " + " + icon_res("resistance_missile") + " + " + icon_res("resistance_fire") + '||'
+      armourtext += "max " + statstr(kv_rules["ward_save_max_value"]) + "%" + "|| " + '||'
       armourtext += "All attacks deal an additional 1 unblockable damage"
       newrow["text"] = armourtext
 
     if key == "unit_stat_localisations_tooltip_text_stat_morale":
       moraletext = "Leadership mechanics: ||"
-      moraletext += "total hp loss:" + "||"
-      moraletext += indentstr(2) + " 10% " + modstr(kv_morale["total_casualties_penalty_10"]) + " 20% " + modstr(kv_morale["total_casualties_penalty_20"]) + " 30% " + modstr(kv_morale["total_casualties_penalty_30"]) + " 40% " + modstr(kv_morale["total_casualties_penalty_40"]) + " 50% " + modstr(kv_morale["total_casualties_penalty_50"]) + "||"
-      moraletext += indentstr(2) + " 60% " + modstr(kv_morale["total_casualties_penalty_60"]) + " 70% " + modstr(kv_morale["total_casualties_penalty_70"]) + " 80% " + modstr(kv_morale["total_casualties_penalty_80"]) + " 90% " + modstr(kv_morale["total_casualties_penalty_90"]) + " 100% " + "um...?" "||"
-      moraletext += "60s hp loss:" + " 10% " + modstr(kv_morale["extended_casualties_penalty_10"]) + " 15% " + modstr(kv_morale["extended_casualties_penalty_15"]) + " 33% " + modstr(kv_morale["extended_casualties_penalty_33"]) + " 50% " + modstr(kv_morale["extended_casualties_penalty_50"]) + " 80% " + modstr(kv_morale["extended_casualties_penalty_80"]) + "||"
-      moraletext += "4s hp loss:" + " 6% " + modstr(kv_morale["recent_casualties_penalty_6"]) + " 10% " + modstr(kv_morale["recent_casualties_penalty_10"]) + " 15% " + modstr(kv_morale["recent_casualties_penalty_15"]) + " 33% " + modstr(kv_morale["recent_casualties_penalty_33"]) + " 50% " + modstr(kv_morale["recent_casualties_penalty_50"]) + "||"
+      moraletext += "total hp loss:" + '||'
+      moraletext += indentstr(2) + " 10% " + modstr(kv_morale["total_casualties_penalty_10"]) + " 20% " + modstr(kv_morale["total_casualties_penalty_20"]) + " 30% " + modstr(kv_morale["total_casualties_penalty_30"]) + " 40% " + modstr(kv_morale["total_casualties_penalty_40"]) + " 50% " + modstr(kv_morale["total_casualties_penalty_50"]) + '||'
+      moraletext += indentstr(2) + " 60% " + modstr(kv_morale["total_casualties_penalty_60"]) + " 70% " + modstr(kv_morale["total_casualties_penalty_70"]) + " 80% " + modstr(kv_morale["total_casualties_penalty_80"]) + " 90% " + modstr(kv_morale["total_casualties_penalty_90"]) + " 100% " + "um...?" '||'
+      moraletext += "60s hp loss:" + " 10% " + modstr(kv_morale["extended_casualties_penalty_10"]) + " 15% " + modstr(kv_morale["extended_casualties_penalty_15"]) + " 33% " + modstr(kv_morale["extended_casualties_penalty_33"]) + " 50% " + modstr(kv_morale["extended_casualties_penalty_50"]) + " 80% " + modstr(kv_morale["extended_casualties_penalty_80"]) + '||'
+      moraletext += "4s hp loss:" + " 6% " + modstr(kv_morale["recent_casualties_penalty_6"]) + " 10% " + modstr(kv_morale["recent_casualties_penalty_10"]) + " 15% " + modstr(kv_morale["recent_casualties_penalty_15"]) + " 33% " + modstr(kv_morale["recent_casualties_penalty_33"]) + " 50% " + modstr(kv_morale["recent_casualties_penalty_50"]) + '||'
       moraletext += "charging: " + modstr(kv_morale["charge_bonus"]) + " timeout " + statstr(float(kv_morale["charge_timeout"]) / 10) +"s||"
-      moraletext += "attacked in" + " side " + modstr(kv_morale["was_attacked_in_flank"]) + " back " + modstr(kv_morale["was_attacked_in_rear"]) + "||"
-      moraletext += "general's death: " + modstr(kv_morale["ume_concerned_general_dead"]) + " recent death or retreat " + modstr(kv_morale["ume_concerned_general_died_recently"]) + "||"
+      moraletext += "attacked in" + " side " + modstr(kv_morale["was_attacked_in_flank"]) + " back " + modstr(kv_morale["was_attacked_in_rear"]) + '||'
+      moraletext += "general's death: " + modstr(kv_morale["ume_concerned_general_dead"]) + " recent death or retreat " + modstr(kv_morale["ume_concerned_general_died_recently"]) + '||'
       moraletext += "army loses: " + modstr(kv_morale["ume_concerned_army_destruction"]) + " power lost: " + statstr((1 - float(kv_morale["army_destruction_alliance_strength_ratio"])) * 100) + "% and balance is " + statstr((1.0 / float(kv_morale["army_destruction_enemy_strength_ratio"])) * 100) + '%||'
-      moraletext += "wavering:" + " " + statstr(kv_morale["ums_wavering_threshold_lower"]) + "-" + statstr(kv_morale["ums_wavering_threshold_upper"]) + "||"
+      moraletext += "wavering:" + " " + statstr(kv_morale["ums_wavering_threshold_lower"]) + "-" + statstr(kv_morale["ums_wavering_threshold_upper"]) + '||'
       moraletext += indentstr(2) + "must spend at least " + statstr(float(kv_morale["waver_base_timeout"]) / 10)  + "s wavering before routing||"
-      moraletext += "broken:" + " " + statstr(kv_morale["ums_broken_threshold_lower"]) + "-" + statstr(kv_morale["ums_broken_threshold_upper"]) + "||"
-      moraletext += indentstr(2) + "max rally count before shattered " + statstr(float(kv_morale["shatter_after_rout_count"]) - 1) + "||"
+      moraletext += "broken:" + " " + statstr(kv_morale["ums_broken_threshold_lower"]) + "-" + statstr(kv_morale["ums_broken_threshold_upper"]) + '||'
+      moraletext += indentstr(2) + "max rally count before shattered " + statstr(float(kv_morale["shatter_after_rout_count"]) - 1) + '||'
       moraletext += "shock rout if 4s hp loss is over " + statstr(kv_morale["recent_casualties_shock_threshold"]) + "% and morale < 0"
       newrow["text"] = moraletext
 
@@ -1360,46 +1359,49 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
         newtext += fatigue_level + ": "
         for stat in fatigue_effects[fatigue_level]:
           newtext += " " + stat_icon[stat] + "" + statstr(float(fatigue_effects[fatigue_level][stat]) * 100) + "%"
-        newtext += "||"
+        newtext += '||'
 
       newtext += " || Tiring/Resting per 1/10 second: ||"
       kvfatiguevals = ["idle", "ready", "walking", "walking_artillery", "running", "running_cavalry", "charging", "combat", "shooting", "climbing_ladders",
                        "gradient_shallow_movement_multiplier", "gradient_steep_movement_multiplier", "gradient_very_steep_movement_multiplier"]
       for kvfatval in kvfatiguevals:
-        newtext += kvfatval + " " + modstr(kv_fatigue[kvfatval], -1) + "||"
+        newtext += kvfatval + " " + modstr(kv_fatigue[kvfatval], -1) + '||'
 
     if key == "unit_stat_localisations_tooltip_text_stat_melee_attack":
-      newtext += "|| ||Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker " + icon("icon_stat_attack") + " - defender " + icon("icon_stat_defence") + "||"
+      newtext += "|| ||Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker " + icon("icon_stat_attack") + " - defender " + icon("icon_stat_defence") + '||'
       newtext += "(min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"]) + ")"
 
     if key == "unit_stat_localisations_tooltip_text_stat_melee_defence":
-      newtext += "|| ||Melee defense when attacked in" + " side " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_flank"]) * 100) + "% back " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_rear"]) * 100) + "%" + "||"
-      newtext += "Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker " + icon("icon_stat_attack") + " - defender " + icon("icon_stat_defence") + "||"
+      newtext += "|| ||Melee defense when attacked in" + " side " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_flank"]) * 100) + "% back " + statstr(float(kv_rules["melee_defence_direction_penalty_coefficient_rear"]) * 100) + "%" + '||'
+      newtext += "Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker " + icon("icon_stat_attack") + " - defender " + icon("icon_stat_defence") + '||'
       newtext += "(min: " + statstr(kv_rules["melee_hit_chance_min"]) + " max: " + statstr(kv_rules["melee_hit_chance_max"]) + ")"
 
     if key == "unit_stat_localisations_tooltip_text_stat_charge_bonus":
       newtext += "|| ||Charge bonus lasts for " + statstr(kv_rules["charge_cool_down_time"] + "s") + " after first contact, linearly going down to 0. ||"
       newtext += "Charge bonus is added to melee_attack and weapon_damage. Weapon_damage increase is split between ap and base dmg using the ap/base dmg ratio before the bonus.||"
-      newtext += "All attacks on routed units are using charge bonus *" + statstr(kv_rules["pursuit_charge_bonus_modifier"]) + "||"
+      newtext += "All attacks on routed units are using charge bonus *" + statstr(kv_rules["pursuit_charge_bonus_modifier"]) + '||'
       newtext += " || Bracing: ||"
       newtext += indentstr(2) + "bracing is a multiplier (clamped to " +statstr(kv_rules["bracing_max_multiplier_clamp"]) + ") to the mass of the charged unit for comparison vs a charging one||"
       newtext += indentstr(2) + "to brace the unit must stand still in formation (exact time to get in formation varies) and not attack/fire||" 
       newtext += indentstr(2) + "bracing will only apply for attacks coming from the front at max " + statstr(kv_rules["bracing_attack_angle"]) + "* half-angle||"              
-      newtext += indentstr(2) + "bracing from ranks: 1: " + statstr(1.0) + " ranks 2-" + statstr(kv_rules["bracing_calibration_ranks"]) + " add " + statstr((float(kv_rules["bracing_calibration_ranks_multiplier"]) - 1) / (float(kv_rules["bracing_calibration_ranks"])  - 1)) + "||"
+      newtext += indentstr(2) + "bracing from ranks: 1: " + statstr(1.0) + " ranks 2-" + statstr(kv_rules["bracing_calibration_ranks"]) + " add " + statstr((float(kv_rules["bracing_calibration_ranks_multiplier"]) - 1) / (float(kv_rules["bracing_calibration_ranks"])  - 1)) + '||'
 
     if key == "unit_stat_localisations_tooltip_text_stat_weapon_damage":
-      newtext += "|| Terrain height difference dmg mod max: +/-" + statstr(float(kv_rules["melee_height_damage_modifier_max_coefficient"]) * 100) + "% at diff of +/- " + statstr(kv_rules["melee_height_damage_modifier_max_difference"]) + "m, linearly decreasing to 0"
+      newtext += "|| ||Height advantage affects damage by up to: +/-" + statstr(float(kv_rules["melee_height_damage_modifier_max_coefficient"]) * 100) + "% at +/- " + statstr(kv_rules["melee_height_damage_modifier_max_difference"]) + 'm'
 
     if key == "unit_stat_localisations_tooltip_text_scalar_missile_range":
-      newtext += "|| ||Hit chance when shooting targets hiding in forests/scrub:" + statstr((1 - float(kv_rules["missile_target_in_cover_penalty"]))  * 100) + '||'
-      newtext += "Friendly fire uses bigger hitboxes than enemy fire: height *= " + statstr(kv_rules["projectile_friendly_fire_man_height_coefficient"]) + " radius *= " + statstr(kv_rules["projectile_friendly_fire_man_radius_coefficient"]) + "||" 
-      newtext += "Units with " + statstr("dual") + " trajectory will switch their aim to high if "+ statstr(float(kv_rules["unit_firing_line_of_sight_considered_obstructed_ratio"]) * 100) + "% of LOS is obstructed ||"
-      newtext += "Projectiles with high velocity and low aim are much better at hitting moving enemies."
+      newtext += "|| ||Trees/scrub block " + statstr(float(kv_rules["missile_target_in_cover_penalty"]) * 100) + "% of incoming missiles" + '||'
+      newtext += "Friendly fire uses hitboxes that are " + statstr(kv_rules["projectile_friendly_fire_man_height_coefficient"]) + " higher and " + statstr(kv_rules["projectile_friendly_fire_man_radius_coefficient"]) + " taller " + "||  ||"
+      newtext += "Accuracy is determined by a few parameters" + '||'
+      newtext += "Calibration range, beyond accuracy falls greatly" + '||'
+      newtext += "Calibration area, area where all shots land" + '||'
+      newtext += "The longer the range and smaller the area the better" + '||'
+      newtext += "due to technical limits those are only visible in the 'hover here for stats' on the unit card" + '||'
       # todo: things like missile penetration, lethality seem to contradict other stat descriptions but don't seem obsolete as they weren't there in shogun2
       # need to do more testing before adding them in
 
     if key == "unit_stat_localisations_tooltip_text_stat_missile_strength":
-      newtext += "|| Terrain height difference dmg mod max: +/-" + statstr(float(kv_rules["missile_height_damage_modifier_max_coefficient"]) * 100) + "% at diff of +/- " + kv_rules["missile_height_damage_modifier_max_difference"] + "m, linearly decreasing to 0||"
+      newtext += "|| ||Height advantage affects damage by up to: +/-" + statstr(float(kv_rules["missile_height_damage_modifier_max_coefficient"]) * 100) + "% at +/- " + statstr(kv_rules["missile_height_damage_modifier_max_difference"]) + 'm' + '||'
     
     # todo: more kv_rules values: missile, collision, etc
     newrow["text"] += newtext
@@ -1422,12 +1424,12 @@ with TWLocDBReader("unit_attributes") as db_reader:
       newtext += "next terror immunity lasts for " + statstr(kv_morale["morale_shock_rout_immunity_timer"]) + "s"
     if key == "unit_attributes_bullet_text_encourages":
       newtext += "||encourage aura " + " full effect range " + statstr(kv_morale["general_aura_radius"]) + "m linear drop to 0 at " + statstr(float(kv_morale["general_aura_radius"]) * float(kv_morale["inspiration_radius_max_effect_range_modifier"])) +  "m||"
-      newtext += "general's effect in full effect range " + modstr(kv_morale["general_inspire_effect_amount_min"]) + "||"
+      newtext += "general's effect in full effect range " + modstr(kv_morale["general_inspire_effect_amount_min"]) + '||'
       newtext += "encourage unit's effect in full effect range " + modstr(kv_morale["unit_inspire_effect_amount"]) 
     if key == "unit_attributes_bullet_text_strider":
       newtext += "||this includes speed decrease from uphill slope, melee and missile dmg reduction from being downhill, ground_stat_type, fatigue penalties from terrain, etc."
     for s in stat:
-      newtext += "||" + s + ": " + statstr(stat[s])
+      newtext += '||' + s + ": " + statstr(stat[s])
     newrow["text"] += newtext
   db_writer.write()
 
@@ -1473,7 +1475,7 @@ with TWLocDBReader("uied_component_texts") as db_reader:
         stats = rank_bonuses[str(rank)]
         for stat in stats:
           newtext += stat_icon[stat] + " " + stats[stat] + " "
-        newtext += "||"
+        newtext += '||'
     newrow["text"] += newtext
   db_writer.write()
 
