@@ -60,7 +60,7 @@ def make_package():
 
   run_rpfm(install_path, "packfile", "-l")
   print(f"Mod package written to: {install_path}")
-  
+
 
 def extract_db_to_tsv(packfile, tablefile):
   run_rpfm(f"{twgame_path}/data/{packfile}", "table", "-e", tablefile)
@@ -89,7 +89,7 @@ class TWDBReaderImpl():
     except FileNotFoundError:
       extract_db_to_tsv(self.packfile, f"{extract_path}/{self.tablefile}")
       self.tsv_file = open(f"{extract_path}/{self.tsvfile}", encoding="utf-8")
-      
+
     self.read_tsv = csv.reader(self.tsv_file, delimiter="\t")
     self.head_rows = []
     self.head_rows.append(next(self.read_tsv))
@@ -170,7 +170,7 @@ class TWDBWriter():
     for key in kv:
       row[key] = kv[key]
     return row
-  
+
   def proto_row(self):
     return self.new_rows[0].copy()
 
@@ -245,7 +245,7 @@ ability_phase_attrs = read_to_dict_of_lists(TWDBReader("special_ability_phase_at
 # inspiration_aura_range_mod
 # ability_recharge_change: if the unit has abilities, their recharge will be changed by that amount (negative will reduce the time, positive will increase the time)
 # resurrect: If ticked, when healing excess hit points will resurrect dead soldiers
-# hp_change_frequency: In seconds, how often hp (hit point) change should attempt to be applied 
+# hp_change_frequency: In seconds, how often hp (hit point) change should attempt to be applied
 # heal_amount: When HP (hit points) are healed, how much total should be changed, spread amoungst the entities
 # damage_chance: Per entity, per frequency, what the chance is of applying damage; the effect is not linear, mostly effective in 0.00-0.02
 # damage_amount: Per entity, per frequency, what the amount of damage to apply
@@ -305,7 +305,7 @@ def ability_phase_details_stats(phaseid, indent = 0, title=""):
   if phaseid in ability_phase_stats:
     result += indentstr(indent+ 2) +"stats:\\\\n"
     effects = ability_phase_stats[phaseid]
-    
+
     for effect in effects:
       how = "*" if effect["how"] == 'mult' else '+'
       if how == '+' and float(effect["value"]) < 0:
@@ -463,7 +463,7 @@ def damage_stat(base, ap, ignition, magic, title="dmg"):
     typestr+="[[img:ui/skins/default/modifier_icon_flaming.png]][[/img]]"
   apppct = ""
   if float(base) != 0:
-    apppct = "("  + statstr(numstr(round(float(ap) * 100 / (float(base) + float(ap)), 2)) + "%") + ")" 
+    apppct = "("  + statstr(numstr(round(float(ap) * 100 / (float(base) + float(ap)), 2)) + "%") + ")"
   return title + ": " + statstr(base) + "+ap:" + statstr(ap) + apppct + typestr
 
 def icon(name):
@@ -472,7 +472,7 @@ def icon(name):
 def icon_res(name):
   return "[[img:ui/campaign ui/effect_bundles/" + name + ".png]][[/img]]"
 
-def explosion_stats(explosionrow, indent = 0): 
+def explosion_stats(explosionrow, indent = 0):
   projectiletext = ""
 
   # detonation_duration, detonation_speed,
@@ -515,7 +515,7 @@ def missile_stats(projectilerow, unit, projectilename, indent, traj = True):
   # can_target_airborne
   # is_magical
   # ignition_amount How much do we contribute to setting things on fire. Also, if this value is greater than 0, this is considered a flaming attack
-  # gravity - Use this value to make projectiles be more / less affected by gravity. This is mainly used as a representation of wind resistance, so that projectiels can hang in the air. Negative means to use 'normal' gravity. 
+  # gravity - Use this value to make projectiles be more / less affected by gravity. This is mainly used as a representation of wind resistance, so that projectiels can hang in the air. Negative means to use 'normal' gravity.
   # mass - Mass of the projectile.
   # burst_size - Number of shots in a single burst (value of 1 means no burst mode)
   # burst_shot_delay - Determines the delay between each shot of the same burst
@@ -554,7 +554,7 @@ def missile_stats(projectilerow, unit, projectilename, indent, traj = True):
     volley += "shots_per_volley " + statstr(projectilerow['burst_size']) + " interval " +  statstr(projectilerow['burst_shot_delay'])
   if projectilerow['projectile_number'] != "1":
     volley += "projectiles_per_shot " + statstr(projectilerow['projectile_number'])
-  
+
   central_targets = statstr("closest_target")
   if projectilerow['prefer_central_targets'] == "false":
     central_targets = statstr("central_target")
@@ -652,7 +652,7 @@ def meleeweapon_stats(meleeid, indent = 0):
     # confirmed by ca: blank means no splash damage
     unit_desc += statindent("target_size","<=" + meleerow['splash_attack_target_size'], indent + 2)
     unit_desc += indentstr(indent + 2) + "max_targets " + statstr(meleerow['splash_attack_max_attacks']) + " dmg_each " + derivedstatstr(round(total_dmg / float(meleerow['splash_attack_max_attacks']), 0))  + endl
-    if float(meleerow['splash_attack_power_multiplier']) != 1.0: 
+    if float(meleerow['splash_attack_power_multiplier']) != 1.0:
       unit_desc += statindent("knockback mult", round(float(meleerow['splash_attack_power_multiplier']), 1), indent + 2)
   if meleerow['collision_attack_max_targets'] != "0":
     unit_desc  += indentstr(indent) + " collision: max targets " + statstr(meleerow['collision_attack_max_targets']) + " recharge_per_sec " + statstr(meleerow['collision_attack_max_targets_cooldown']) + endl
@@ -757,7 +757,7 @@ ability_loc_writer = ability_loc_reader.make_writer()
 
 ability_proto_map = {"key": "ikit_claw_missile_tooltip", "requires_effect_enabling": "true", "icon_name": "ranged_weapon_stat", "type": "wh_type_augment", "uniqueness": "wh_main_anc_group_common", "is_unit_upgrade": "false", "is_hidden_in_ui": "false", "source_type": "unit", "is_hidden_in_ui_for_enemy":"false"}
 ability_details_proto_map = {"key": "ikit_claw_missile_tooltip", "num_uses": "-1", "active_time": "-1", "recharge_time": "-1", "initial_recharge": "-1", "wind_up_time": "0",
- "passive": "true", "effect_range": "0", "affect_self": "false", "num_effected_friendly_units": "0", "num_effected_enemy_units": "0", "update_targets_every_frame": "0", 
+ "passive": "true", "effect_range": "0", "affect_self": "false", "num_effected_friendly_units": "0", "num_effected_enemy_units": "0", "update_targets_every_frame": "0",
  "target_friends": "false", "target_enemies": "false", "target_ground": "false", "target_intercept_range": "0", "clear_current_order": "false", "unique_id": "17224802351", "mana_cost": "0",
  "min_range": "0", "miscast_chance": "0", "voiceover_state": "vo_battle_special_ability_generic_response", "additional_melee_cp": "0", "additional_missile_cp": "0",
  "target_ground_under_allies": "false", "target_ground_under_enemies": "false", "miscast_global_bonus": "false", "target_self": "true", "spawn_is_transformation": "false", "use_loop_stance": "false",
@@ -769,10 +769,10 @@ for effectid in effect_bonus_missile_junctions:
     abilityid = effectid + "_" + effectrow["missile_weapon_junction"] + "_stats"
     weaponjunction = missile_weapon_for_junction[effectrow["missile_weapon_junction"]]
     weaponid = weaponjunction["missile_weapon"]
-    
+
     abilitynamerow = ability_loc_writer.make_row()
     abilitynamerow["key"] = "unit_abilities_onscreen_name_" + abilityid
-    
+
     abilitynamerow["text"] = weaponid.split("_", 2)[2]
     abilitynamerow["tooltip"] = "true"
     ability_loc_writer.new_rows.append(abilitynamerow)
@@ -864,9 +864,9 @@ with TWDBReader("main_units_tables") as db_reader:
         stats["missile_block"] = shields[unit['shield']] + "%"
       stats["capture_power"] = unit['capture_power'] # also apparently dead vehicles have capture power?
       # land_unit
-      # todo: spot dist tree/ spot dist scrub/ 
+      # todo: spot dist tree/ spot dist scrub/
       # hiding scalar -This affects the range that the unit can be spotted at, less than 1 makes it longer, greater than 1 shorter. So 1.5 would increase the spotters range by +50%
-      # sync locomotion - undead sync anim   
+      # sync locomotion - undead sync anim
       # training level: deprecated
       # visibility_spotting_range_min/max
       # attribute group - lists attributes
@@ -909,7 +909,7 @@ with TWDBReader("main_units_tables") as db_reader:
         if officerrow["additional_personalities"] != "":
           additional = personality_group[officerrow["additional_personalities"]]
           unitpersonalities.extend(additional)
-      
+
       support_entities = []
       supportmeleeweapons = []
       meleeweaponsset = set()
@@ -986,7 +986,7 @@ with TWDBReader("main_units_tables") as db_reader:
       health = int(entity["hit_points"]) + int(unit['bonus_hit_points'])
       mass = float(entity["mass"])
 
-      for supportid in support_entities: 
+      for supportid in support_entities:
         supportentity = battle_entities[supportid]
         mass += float(supportentity["mass"])
         health += int(supportentity["hit_points"])
@@ -1008,7 +1008,7 @@ with TWDBReader("main_units_tables") as db_reader:
       # land_unit -> ground_stat_effect_group -> ground_type_stat_effects
       if unit['ground_stat_effect_group'] != "" and unit['ground_stat_effect_group'] in ground_type_stats:
         ground_types = ground_type_stats[unit['ground_stat_effect_group']]
-        
+
         unit_desc += "ground effects (can be cancelled by strider attr): " + endl
         for gtype in  ground_types:
           statdesc = gtype + ": "
@@ -1023,7 +1023,7 @@ with TWDBReader("main_units_tables") as db_reader:
       # ammo is number of full volleys (real ammo is num volleys * num people)
       if int(unit['secondary_ammo']) != 0:
         stats["secondary_ammo"] = unit['secondary_ammo']
-      
+
       for stat in stats:
           unit_desc += statindent(stat, stats[stat], indent)
 
@@ -1140,7 +1140,7 @@ with ability_loc_reader as db_reader:
             result += statindent("cast_time", ability["wind_up_time"], 0)
             result += statindent("active_time", ability["active_time"], 0)
             initial_recharge = ""
-            if (float(ability["initial_recharge"]) > 0): 
+            if (float(ability["initial_recharge"]) > 0):
               initial_recharge = ", initial " + ability["initial_recharge"]
             result += statindent("recharge_time", ability["recharge_time"] + initial_recharge, 0)
             if float(ability["min_range"]) > 0:
@@ -1157,7 +1157,7 @@ with ability_loc_reader as db_reader:
 
           if ability["assume_specific_behaviour"]:
             result += statindent("behaviour", ability["assume_specific_behaviour"], 0)
-          
+
           if ability["bombardment"] != "":
             bombardment = bombardments[ability["bombardment"]]
             result += "Bombardment:\\\\n"
@@ -1227,7 +1227,7 @@ with ability_loc_reader as db_reader:
             for phaseid in phases:
               i = i + 1
               result += ability_phase_details_stats(phaseid, 2, numstr(i) + ".")
-        newrow["text"] = newrow["text"] + result 
+        newrow["text"] = newrow["text"] + result
 
 # new unit_abilities loc entries
 ability_loc_writer.write()
@@ -1282,7 +1282,7 @@ with TWDBReader("unit_stats_land_experience_bonuses_tables") as db_reader:
         result[bonus_stat] = statstr(round((30.0 ** growth_rate) * growth_scalar * rank)) + " " + statstr(round((60.0 ** growth_rate) * growth_scalar * rank))
     rank_bonuses[key] = result
 
-  # good icons: 
+  # good icons:
   # calibration_distance: icon_distance_to_target
   # missile attack: icon_stat_ranged_damage_base
   # missile range: icon_stat_range
@@ -1382,8 +1382,8 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
       newtext += "All attacks on routed units are using charge bonus *" + statstr(kv_rules["pursuit_charge_bonus_modifier"]) + '||'
       newtext += " || Bracing: ||"
       newtext += indentstr(2) + "bracing is a multiplier (clamped to " +statstr(kv_rules["bracing_max_multiplier_clamp"]) + ") to the mass of the charged unit for comparison vs a charging one||"
-      newtext += indentstr(2) + "to brace the unit must stand still in formation (exact time to get in formation varies) and not attack/fire||" 
-      newtext += indentstr(2) + "bracing will only apply for attacks coming from the front at max " + statstr(kv_rules["bracing_attack_angle"]) + "* half-angle||"              
+      newtext += indentstr(2) + "to brace the unit must stand still in formation (exact time to get in formation varies) and not attack/fire||"
+      newtext += indentstr(2) + "bracing will only apply for attacks coming from the front at max " + statstr(kv_rules["bracing_attack_angle"]) + "* half-angle||"
       newtext += indentstr(2) + "bracing from ranks: 1: " + statstr(1.0) + " ranks 2-" + statstr(kv_rules["bracing_calibration_ranks"]) + " add " + statstr((float(kv_rules["bracing_calibration_ranks_multiplier"]) - 1) / (float(kv_rules["bracing_calibration_ranks"])  - 1)) + '||'
 
     if key == "unit_stat_localisations_tooltip_text_stat_weapon_damage":
@@ -1391,7 +1391,7 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
 
     if key == "unit_stat_localisations_tooltip_text_scalar_missile_range":
       newtext += "|| ||Trees/scrub block " + statstr(float(kv_rules["missile_target_in_cover_penalty"]) * 100) + "% of incoming missiles" + '||'
-      newtext += "Friendly fire uses hitboxes that are " + statstr(kv_rules["projectile_friendly_fire_man_height_coefficient"]) + " higher and " + statstr(kv_rules["projectile_friendly_fire_man_radius_coefficient"]) + " taller " + "||  ||"
+      newtext += "Friendly fire uses hitboxes that are " + statstr(kv_rules["projectile_friendly_fire_man_height_coefficient"]) + " higher and " + statstr(kv_rules["projectile_friendly_fire_man_radius_coefficient"]) + " wider " + "||  ||"
       newtext += "Accuracy is determined by a few parameters" + '||'
       newtext += "Calibration range, beyond accuracy falls greatly" + '||'
       newtext += "Calibration area, area where all shots land" + '||'
@@ -1402,7 +1402,7 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
 
     if key == "unit_stat_localisations_tooltip_text_stat_missile_strength":
       newtext += "|| ||Height advantage affects damage by up to: +/-" + statstr(float(kv_rules["missile_height_damage_modifier_max_coefficient"]) * 100) + "% at +/- " + statstr(kv_rules["missile_height_damage_modifier_max_difference"]) + 'm' + '||'
-    
+
     # todo: more kv_rules values: missile, collision, etc
     newrow["text"] += newtext
   db_writer.write()
@@ -1425,7 +1425,7 @@ with TWLocDBReader("unit_attributes") as db_reader:
     if key == "unit_attributes_bullet_text_encourages":
       newtext += "||encourage aura " + " full effect range " + statstr(kv_morale["general_aura_radius"]) + "m linear drop to 0 at " + statstr(float(kv_morale["general_aura_radius"]) * float(kv_morale["inspiration_radius_max_effect_range_modifier"])) +  "m||"
       newtext += "general's effect in full effect range " + modstr(kv_morale["general_inspire_effect_amount_min"]) + '||'
-      newtext += "encourage unit's effect in full effect range " + modstr(kv_morale["unit_inspire_effect_amount"]) 
+      newtext += "encourage unit's effect in full effect range " + modstr(kv_morale["unit_inspire_effect_amount"])
     if key == "unit_attributes_bullet_text_strider":
       newtext += "||this includes speed decrease from uphill slope, melee and missile dmg reduction from being downhill, ground_stat_type, fatigue penalties from terrain, etc."
     for s in stat:
@@ -1527,4 +1527,4 @@ make_package()
 # todo: projectile table new entry
   # Projectile Vegetation Grace Periods
 
-  # Projectiles now have the ability to pass through trees for a limited time after being created. This is a global rule that applies to all non-artillery units. This behaviour lasts for a limited duration after the projectile is fired, relative to the speed of the projectile. Significantly reducing instances of units firing weapons into trees that are a few feet from them.  
+  # Projectiles now have the ability to pass through trees for a limited time after being created. This is a global rule that applies to all non-artillery units. This behaviour lasts for a limited duration after the projectile is fired, relative to the speed of the projectile. Significantly reducing instances of units firing weapons into trees that are a few feet from them.
