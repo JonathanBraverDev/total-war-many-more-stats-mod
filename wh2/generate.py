@@ -3,7 +3,6 @@ import os
 import shutil
 import subprocess
 import argparse
-import math
 
 twgame = "warhammer_2"
 extract_path = "extract"
@@ -1035,7 +1034,7 @@ with TWDBReader("main_units_tables") as db_reader:
         if unit['ground_stat_effect_group'] != "" and unit['ground_stat_effect_group'] in ground_type_stats:
             ground_types = ground_type_stats[unit['ground_stat_effect_group']]
 
-            unit_desc += "ground effects (can be cancelled by strider attr): " + endl
+            unit_desc += "ground effects (negatives are cancelled by strider attr): " + endl
             for gtype in ground_types:
                 statdesc = gtype + ": "
                 for statrow in ground_types[gtype]:
@@ -1382,9 +1381,13 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
                 newtext += '||'
 
             newtext += " || Tiring/Resting per 1/10 second: ||"
-            kvfatiguevals = ["idle", "ready", "walking", "walking_artillery", "running", "running_cavalry", "charging", "combat", "shooting", "climbing_ladders", "gradient_shallow_movement_multiplier", "gradient_steep_movement_multiplier", "gradient_very_steep_movement_multiplier"]
+            kvfatiguevals = ["idle", "ready", "walking", "walking_artillery", "running", "running_cavalry", "charging", "combat", "shooting", "climbing_ladders"]
             for kvfatval in kvfatiguevals:
                 newtext += kvfatval + " " + modstr(kv_fatigue[kvfatval], -1) + '||'
+
+            kvfatiguevals = ["gradient_shallow_movement_multiplier", "gradient_steep_movement_multiplier", "gradient_very_steep_movement_multiplier"]
+            for kvfatval in kvfatiguevals:
+                newtext += kvfatval + " " + modstr(float(kv_fatigue[kvfatval]) + 100, -1) + '%' + '||'
 
         if key == "unit_stat_localisations_tooltip_text_stat_melee_attack":
             newtext += "|| ||Melee hit chance formula: ||" + statstr(kv_rules["melee_hit_chance_base"]) + "% + attacker " + icon("icon_stat_attack") + " - defender " + icon("icon_stat_defence") + '||'
@@ -1397,7 +1400,7 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
 
         if key == "unit_stat_localisations_tooltip_text_stat_charge_bonus":
             newtext += "|| ||Charge bonus lasts for " + statstr(kv_rules["charge_cool_down_time"] + "s") + " after first contact, linearly going down to 0. ||"
-            newtext += "Charge bonus is added to melee_attack and weapon_damage. Weapon_damage increase is split between ap and base dmg using the ap/base dmg ratio before the bonus.||"
+            newtext += "Charge bonus is added to melee attack and weapon damage. The additional weapon damage is split between ap and base dmg according to the unit's currnet ratio||"
             newtext += "All attacks on routed units are using charge bonus *" + statstr(kv_rules["pursuit_charge_bonus_modifier"]) + '||'
             newtext += " || Bracing: ||"
             newtext += indentstr(2) + "bracing is a multiplier (clamped to " + statstr(kv_rules["bracing_max_multiplier_clamp"]) + ") to the mass of the charged unit for comparison vs a charging one||"
@@ -1406,7 +1409,7 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
             newtext += indentstr(2) + "bracing from ranks: 1: " + statstr(1.0) + " ranks 2-" + statstr(kv_rules["bracing_calibration_ranks"]) + " add " + statstr((float(kv_rules["bracing_calibration_ranks_multiplier"]) - 1) / (float(kv_rules["bracing_calibration_ranks"]) - 1)) + '||'
 
         if key == "unit_stat_localisations_tooltip_text_stat_weapon_damage":
-            newtext += "|| ||Height advantage affects damage by up to: +/-" + statstr(float(kv_rules["melee_height_damage_modifier_max_coefficient"]) * 100) + "% at +/- " + statstr(kv_rules["melee_height_damage_modifier_max_difference"]) + 'm'
+            newtext += "|| ||Height relative to target affects damage by up to +/-" + statstr(float(kv_rules["melee_height_damage_modifier_max_coefficient"]) * 100) + "% at +/- " + statstr(kv_rules["melee_height_damage_modifier_max_difference"]) + 'm'
 
         if key == "unit_stat_localisations_tooltip_text_scalar_missile_range":
             newtext += "|| ||Trees/scrub block " + statstr(float(kv_rules["missile_target_in_cover_penalty"]) * 100) + "% of incoming missiles" + '||'
@@ -1418,7 +1421,7 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
             newtext += "due to technical limits those are only visible in the 'hover here for stats' on the unit card" + '||'  # todo: things like missile penetration, lethality seem to contradict other stat descriptions but don't seem obsolete as they weren't there in shogun2  # need to do more testing before adding them in
 
         if key == "unit_stat_localisations_tooltip_text_stat_missile_strength":
-            newtext += "|| ||Height advantage affects damage by up to: +/-" + statstr(float(kv_rules["missile_height_damage_modifier_max_coefficient"]) * 100) + "% at +/- " + statstr(kv_rules["missile_height_damage_modifier_max_difference"]) + 'm' + '||'
+            newtext += "|| ||Height relative to target affects damage by up to +/-" + statstr(float(kv_rules["missile_height_damage_modifier_max_coefficient"]) * 100) + "% at +/- " + statstr(kv_rules["missile_height_damage_modifier_max_difference"]) + 'm' + '||'
 
         # todo: more kv_rules values: missile, collision, etc
         newrow["text"] += newtext
@@ -1483,6 +1486,8 @@ with TWLocDBReader("uied_component_texts") as db_reader:
         newtext = ""
         key = newrow["key"]
         stat = {}
+
+        # todo: add unit wipe info
 
         if key == "uied_component_texts_localised_string_experience_tx_Tooltip_5c0016":
             newtext += "|| XP rank bonuses (melee attack and defence list values for base 30 and 60 as their bonus depends on the base value of the stat): ||"
