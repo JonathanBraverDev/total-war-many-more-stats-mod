@@ -92,13 +92,14 @@ class TWDBReaderImpl:
         self.table_file = None
         self.packfile = None
         self.tsv_file = None
+        self.tsv_file_path = None
 
     def _read_header(self):
         try:
-            self.tsv_file = open(f"{extract_path}/{self.tsv_file}", encoding="utf-8")
+            self.tsv_file = open(f"{extract_path}/{self.tsv_file_path}", encoding="utf-8")
         except FileNotFoundError:
             extract_db_to_tsv(self.packfile, f"{extract_path}/{self.table_file}")
-            self.tsv_file = open(f"{extract_path}/{self.tsv_file}", encoding="utf-8")
+            self.tsv_file = open(f"{extract_path}/{self.tsv_file_path}", encoding="utf-8")
 
         self.read_tsv = csv.reader(self.tsv_file, delimiter="\t")
         self.head_rows = []
@@ -122,7 +123,7 @@ class TWDBReaderImpl:
         if self.head_rows is None:
             self._read_header()
             self.tsv_file.close()
-        out_tsv_file = self.tsv_file
+        out_tsv_file = self.tsv_file_path
         if self.out_tsv_file is not None:
             out_tsv_file = self.out_tsv_file
         return TWDBWriter(self.table_name, self.table_file, out_tsv_file, self.packfile, self.head_rows, self.key_ids)
@@ -140,7 +141,7 @@ class TWDBReader(TWDBReaderImpl):
         super().__init__()
         self.table_name = table_name
         self.table_file = "db/" + self.table_name + "/data__"
-        self.tsv_file = self.table_file + ".tsv"
+        self.tsv_file_path = self.table_file + ".tsv"
         self.out_tsv_file = None
         self.head_rows = None
         self.packfile = "data.pack"
@@ -151,34 +152,34 @@ class TWLocDBReader(TWDBReaderImpl):
         super().__init__()
         self.table_name = table_name
         self.table_file = f"text/db/{self.table_name}__.loc"
-        self.tsv_file = f"text/db/{self.table_name}__.tsv"
+        self.tsv_file_path = f"text/db/{self.table_name}__.tsv"
         self.out_tsv_file = f"text/db/{self.table_name}__.loc.tsv"
         self.head_rows = None
         self.packfile = "local_en.pack"
 
 
 class TWDBWriter:
-    def __init__(self, table_name, table_file, tsv_file, packfile, head_rows, key_ids):
+    def __init__(self, table_name, table_file, tsv_file_path, packfile, head_rows, key_ids):
         self.tsv_writer = None
         self.table_name = table_name
         self.table_file = table_file
-        self.tsv_file = tsv_file
+        self.tsv_file_path = tsv_file_path
         self.head_rows = head_rows
         self.key_ids = key_ids
         self.new_rows = []
         self.packfile = packfile
 
     def write(self):
-        os.makedirs(os.path.dirname(f"{output_path}/{self.tsv_file}"), exist_ok=True)
-        self.tsv_file = open(f"{output_path}/{self.tsv_file}", 'w', newline="", encoding="utf-8")
+        os.makedirs(os.path.dirname(f"{output_path}/{self.tsv_file_path}"), exist_ok=True)
+        self.tsv_file = open(f"{output_path}/{self.tsv_file_path}", 'w', newline="", encoding="utf-8")
         self.tsv_writer = csv.writer(self.tsv_file, delimiter='\t', quoting=csv.QUOTE_NONE, quotechar='')
         for row in self.head_rows:
             self.tsv_writer.writerow(row)
         for row in self.new_rows:
             self.tsv_writer.writerow(row.row)
         self.tsv_file.close()
-        pack_tsv_to_db(self.packfile, f"{output_path}/{self.tsv_file}")
-        os.remove(f"{output_path}/{self.tsv_file}")
+        pack_tsv_to_db(self.packfile, f"{output_path}/{self.tsv_file_path}")
+        os.remove(f"{output_path}/{self.tsv_file_path}")
 
     def make_row(self, kv={}):
         row_val = [""] * len(self.head_rows[1])
