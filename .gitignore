@@ -3,3 +3,7 @@ extract
 output
 .vs
 .vscode
+.idea/
+RPFM companion/
+wh2/extract/
+wh2/output/
