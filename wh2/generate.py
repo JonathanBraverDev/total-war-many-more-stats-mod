@@ -1415,7 +1415,7 @@ def stat_descriptions(fatigue_order, fatigue_effects, stat_icons):
                 new_text += " || Bracing: ||"
                 new_text += indent_str(2) + "bracing is a multiplier (clamped to " + stat_str(kv_rules["bracing_max_multiplier_clamp"]) + ") to the mass of the charged unit for comparison vs a charging one||"
                 new_text += indent_str(2) + "to brace the unit must stand still in formation (exact time to get in formation varies) and not attack/fire||"
-                new_text += indent_str(2) + "bracing will only apply for attacks coming from the front at max " + stat_str(kv_rules["bracing_attack_angle"]) + "* half-angle||"
+                new_text += indent_str(2) + "bracing will only apply for attacks coming from the front in a " + stat_str(float(kv_rules["bracing_attack_angle"]) * 2) + "° arc||"
                 new_text += indent_str(2) + "bracing from ranks: 1: " + stat_str(1.0) + " ranks 2-" + stat_str(kv_rules["bracing_calibration_ranks"]) + " add " + stat_str((float(kv_rules["bracing_calibration_ranks_multiplier"]) - 1) / (float(kv_rules["bracing_calibration_ranks"]) - 1)) + '||'
 
             if key == "unit_stat_localisations_tooltip_text_stat_weapon_damage":
@@ -1474,7 +1474,7 @@ def random_localisation_strings(fatigue_order, fatigue_effects, stat_icons):
             key = new_row["key"]
 
             if key == "random_localisation_strings_string_modifier_icon_tooltip_shield":
-                new_text += "|| Shields only block projectiles from the front at max " + stat_str(kv_rules["shield_defence_angle_missile"]) + "* half-angle"
+                new_text += "|| Shields only block projectiles from the front in a " + stat_str(float(kv_rules["shield_defence_angle_missile"]) * 2) + "° arc"
             if "random_localisation_strings_string_fatigue" in key:
                 for fatigue_level in fatigue_order:
                     if ("fatigue_" + fatigue_level) not in key:
