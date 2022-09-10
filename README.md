@@ -8,19 +8,19 @@ I'll update the readme with stat pages that feel complete as I go
 
 updated tooltips
 
-![](new_armor_tooltip.png)
+![](images/new_armor_tooltip.png)
 
-![](new_morale_tooltip.png)
+![](images/new_morale_tooltip.png)
 
-![](new_melee_def_tooltip.png)
+![](images/new_melee_def_tooltip.png)
 
 old tooltips
 
-![](old_armor_tooltip.png)
+![](images/old_armor_tooltip.png)
 
-![](old_morale_tooltip.png)
+![](images/old_morale_tooltip.png)
 
-![](old_melee_def_tooltip.png)
+![](images/old_melee_def_tooltip.png)
 
  
 you'd need [RPFM](https://github.com/Frodo45127/rpfm) to rebuild the mod, follow the instructions in the almost empty folder
@@ -101,32 +101,32 @@ python generate.py "path/to/rpfm_cli.exe"
 
 #### Tooltips
 
-![](wh2_tooltips_1.png)
-![](old_morale_tooltip.png)
-![](wh2_tooltips_3.png)
-![](wh2_tooltips_4.png)
+![](images/wh2_tooltips_1.png)
+![](images/old_morale_tooltip.png)
+![](images/wh2_tooltips_3.png)
+![](images/wh2_tooltips_4.png)
 
 #### Spells
 
-![](wh2_spells_1.png)
-![](wh2_spells_2.png)
-![](wh2_spells_3.png)
-![](wh2_spells_4.png)
-![](wh2_spells_5.png)
+![](images/wh2_spells_1.png)
+![](images/wh2_spells_2.png)
+![](images/wh2_spells_3.png)
+![](images/wh2_spells_4.png)
+![](images/wh2_spells_5.png)
 
 #### Unit stats
 
-![](wh2_units_1.png)
-![](wh2_units_2.png)
-![](wh2_units_3.png)
-![](wh2_units_4.png)
+![](images/wh2_units_1.png)
+![](images/wh2_units_2.png)
+![](images/wh2_units_3.png)
+![](images/wh2_units_4.png)
 
 #### Unit campaign mods
 
-![](wh2_campaign_unitmods_1.png)
-![](wh2_campaign_unitmods_2.png)
-![](wh2_campaign_unitmods_3.png)
-![](wh2_campaign_unitmods_4.png)
+![](images/wh2_campaign_unitmods_1.png)
+![](images/wh2_campaign_unitmods_2.png)
+![](images/wh2_campaign_unitmods_3.png)
+![](images/wh2_campaign_unitmods_4.png)
 
 ## Total War Rome 2
 
