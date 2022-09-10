@@ -1396,11 +1396,11 @@ with TWLocDBReader("unit_stat_localisations") as db_reader:
             new_text += " || Tiring/Resting per 1/10 second: ||"
             kv_fatigue_vals = ["idle", "ready", "walking", "walking_artillery", "running", "running_cavalry", "charging", "combat", "shooting", "climbing_ladders"]
             for fatigue_val in kv_fatigue_vals:
-                new_text += fatigue_val + " " + smart_str(kv_fatigue[fatigue_val], -1) + '||'
+                new_text += fatigue_val + " " + smart_str(kv_fatigue[fatigue_val], affinity=-1) + '||'
 
             kv_fatigue_vals = ["gradient_shallow_movement_multiplier", "gradient_steep_movement_multiplier", "gradient_very_steep_movement_multiplier"]
             for fatigue_val in kv_fatigue_vals:
-                new_text += fatigue_val + " " + smart_str(float(kv_fatigue[fatigue_val]) + 100, -1) + '%' + '||'
+                new_text += fatigue_val + " " + smart_str(float(kv_fatigue[fatigue_val]) + 100, affinity=-1) + '%' + '||'
 
         if key == "unit_stat_localisations_tooltip_text_stat_melee_attack":
             new_text += "|| ||Melee hit chance formula: ||" + stat_str(kv_rules["melee_hit_chance_base"]) + "% + attacker " + icon("icon_stat_attack") + " - defender " + icon("icon_stat_defence") + '||'
