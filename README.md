@@ -8,19 +8,19 @@ I'll update the readme with stat pages that feel complete as I go
 
 updated tooltips
 
-![](new armor tooltip.png)
+![](new_armor_tooltip.png)
 
-![](new morale tooltip.png)
+![](new_morale_tooltip.png)
 
-![](new melee def tooltip.png)
+![](new_melee_def_tooltip.png)
 
 old tooltips
 
-![](old armor tooltip.png)
+![](old_armor_tooltip.png)
 
-![](old morale tooltip.png)
+![](old_morale_tooltip.png)
 
-![](old melee def tooltip.png)
+![](old_melee_def_tooltip.png)
 
  
 you'd need [RPFM](https://github.com/Frodo45127/rpfm) to rebuild the mod, follow the instructions in the almost empty folder
@@ -102,7 +102,7 @@ python generate.py "path/to/rpfm_cli.exe"
 #### Tooltips
 
 ![](wh2_tooltips_1.png)
-![](old morale tooltip.png)
+![](old_morale_tooltip.png)
 ![](wh2_tooltips_3.png)
 ![](wh2_tooltips_4.png)
 
