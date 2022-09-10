@@ -1,8 +1,36 @@
-# Total war: Many more stats mod
+# Total war: More stats mod
+the goal of this version is to improve the look and structure of the stat display for warhammer ONLY
+(because that's what I play)
+
+I also got my eyes on [this mod](https://github.com/thunder-zz/warhammer2damagetooltips) for improving spell tooltips clarity
+
+I'll update the readme with stat pages that feel complete as I go
+
+updated tooltips
+
+![](new_armor_tooltip.png)
+
+![](new_morale_tooltip.png)
+
+![](new_melee_def_tooltip.png)
+
+old tooltips
+
+![](old_armor_tooltip.png)
+
+![](old_morale_tooltip.png)
+
+![](old_melee_def_tooltip.png)
+
+ 
+you'd need [RPFM](https://github.com/Frodo45127/rpfm) to rebuild the mod, follow the instructions in the almost empty folder
+
+nothing will work out the box for you btw, everything is tied to my folder structure 
+
+
+# THIS README IS OUTDATED BEYOND THIS POINT
 
 ## Downloading from Steam
-
-![](popularity.jpg)
 
 The mods are available on steam (and seem to be doing pretty well):
 * [Warhammer 2: many more unit stats](https://steamcommunity.com/sharedfiles/filedetails/?id=2453864146)
@@ -74,7 +102,7 @@ python generate.py "path/to/rpfm_cli.exe"
 #### Tooltips
 
 ![](wh2_tooltips_1.png)
-![](wh2_tooltips_2.png)
+![](old_morale_tooltip.png)
 ![](wh2_tooltips_3.png)
 ![](wh2_tooltips_4.png)
 
@@ -118,16 +146,9 @@ python generate.py "path/to/rpfm_cli.exe"
 
 #### Unit base stats
 
-![Example 1](rome2_artillery.png)
-![example 2](rome2_general.png)
-![Example 3](rome2_melee.png)
-![Example 4](rome2_archer.png)
-![Example 5](rome2_mounted_archer.png)
 
 #### Ability tooltips
 
-![Example 6](rome2_ability_tooltip_1.png)
-![Example 7](rome2_ability_tooltip_2.png)
 
 ## Total War Atilla
 
@@ -145,7 +166,4 @@ python generate.py "path/to/rpfm_cli.exe"
 
 ### Screenshots
 
-![Example 1](attila_1.png)
-![example 2](attila_2.png)
-![Example 3](attila_3.png)
 
