@@ -419,7 +419,7 @@ def icon_res(name):
 # fuse_fixed_time - Fixed fuse time in s. -1 means not fixed. Use EITHER fixed fuse time or distance from the target
 # affects allies - yes/no
 # shrapnel: launches another projectile (projectile_shrapnels, amount is num of projectiles )
-def explosion_stats(explosion_row, projectile_types, indent=0):
+def explosion_stats(explosion_row, projectile_types, projectiles_explosions, indent=0):
     projectile_text = ""
     projectile_text += indent_str(indent) + damage_stat(explosion_row["detonation_damage"], explosion_row["detonation_damage_ap"], explosion_row["ignition_amount"], explosion_row["is_magical"], "per_entity_dmg") + "\\\\n"
     projectile_text += named_stat("radius", explosion_row["detonation_radius"], indent)
@@ -434,7 +434,7 @@ def explosion_stats(explosion_row, projectile_types, indent=0):
         if shrapnel_row["launch_type"] == "sector":
             projectile_text += named_stat("angle", shrapnel_row["sector_angle"], indent + 2)
         projectile_text += named_stat("amount", shrapnel_row["amount"], indent + 2)
-        projectile_text += missile_stats(projectile_types[shrapnel_row["projectile"]], None, projectile_types, indent + 2, False)
+        projectile_text += missile_stats(projectile_types[shrapnel_row["projectile"]], None, projectile_types, projectiles_explosions, indent + 2, False)
     if explosion_row["contact_phase_effect"]:
         projectile_text += ability_phase_details_stats(explosion_row["contact_phase_effect"], indent + 2, "contact effect")
     return projectile_text
@@ -475,7 +475,7 @@ def explosion_stats(explosion_row, projectile_types, indent=0):
 # trajectory_sight, max_elevation
 # category: misc ignores shields
 # calibration area, distance (the area in square meter a projectile aims, and the area guaranteed to hit at the calibration_distance range)
-def missile_stats(projectile_row, unit, projectile_types, indent, projectiles_explosions, trajectory=True, ):
+def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions, indent, trajectory=True):
     projectile_text = ""
     building = " "
 
@@ -560,7 +560,7 @@ def missile_stats(projectile_row, unit, projectile_types, indent, projectiles_ex
     if projectile_row["explosion_type"] != "":
         explosion_row = projectiles_explosions[projectile_row["explosion_type"]]
         projectile_text += named_stat("explosion:", "", indent)
-        projectile_text += explosion_stats(explosion_row, projectile_types, indent + 2)
+        projectile_text += explosion_stats(explosion_row, projectile_types, projectiles_explosions, indent + 2)
     return projectile_text
 
 
@@ -598,6 +598,7 @@ def melee_weapon_stats(melee_id, indent=0):
             unit_desc += named_stat("knockback mult", round(float(melee_row["splash_attack_power_multiplier"]), 1), indent + 2)
     if melee_row["collision_attack_max_targets"] != "0":
         unit_desc += indent_str(indent) + " collision: max targets " + stat_str(melee_row["collision_attack_max_targets"]) + " recharge_per_sec " + stat_str(melee_row["collision_attack_max_targets_cooldown"]) + "\\\\n"
+
     return unit_desc
 
 
@@ -1080,7 +1081,7 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
                 unit_desc += melee_weapon_stats(melee_id, 2)
 
             for missile_id in support_ranged_weapons:
-                unit_desc += missile_weapon_stats(missile_id, None, projectile_types, "ranged_support")
+                unit_desc += missile_weapon_stats(missile_id, None, projectile_types, projectiles_explosions, "ranged_support")
 
             spawn_info = unit_names[main_unit_entry["land_unit"]] + " (" + main_unit_entry["caste"] + ", tier " + main_unit_entry["tier"] + " men " + num_str(num_men) + ")"
             land_unit_to_spawn_info[main_unit_entry["land_unit"]] = spawn_info
@@ -1245,7 +1246,7 @@ def ability_descriptions(unit_ability_loc_reader, unit_ability_loc_writer, proje
                     if ability["miscast_explosion"] != "":
                         result += "Miscast explosion (chance:" + stat_str(float(ability["miscast_chance"]) * 100) + "%):"
                         explosion_row = projectiles_explosions[ability["miscast_explosion"]]
-                        result += explosion_stats(explosion_row, projectile_types, 2)
+                        result += explosion_stats(explosion_row, projectile_types, projectiles_explosions, 2)
                         result += "\\\\n"
                 if description_id in ability_phases:
                     result += "Phases:" + "\\\\n"
@@ -1530,7 +1531,7 @@ def component_texts(stat_icons):
 
 
 def main():
-    reload_data = True
+    reload_data = True   # todo: check of files exist and run if not
     if reload_data:
         extract_packfiles()
 
