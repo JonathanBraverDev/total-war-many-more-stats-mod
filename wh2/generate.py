@@ -245,8 +245,6 @@ def read_column_to_dict_of_lists(db_reader, key, column):
     return result
 
 
-extract_packfiles()
-
 # ability phase details - done
 # requested_stance -> special_ability_stance_enums - just an animation?
 # fatigue_change_ratio: This is a scalar that changes the unit's fatigue (once off) relative to the maximum. For example, -0.25 will reduce it by 25% and 1.1 will increase it by 10%
@@ -268,8 +266,6 @@ extract_packfiles()
 # affects_allies
 # affects_enemies
 # replenish_ammo: How much ammunition is replenished when the phase starts (negative values will spend ammo instead), this value is a percentage of unit max ammo
-
-
 def ability_damage_stat(base, ignition, magic, title="dmg"):
     type_str = ""
     if magic == "true":
@@ -331,13 +327,6 @@ def ability_phase_details_stats(phase_id, indent=0, title=""):
     if details["imbue_contact"] != "":
         result += ability_phase_details_stats(details["imbue_contact"], indent + 2, "imbue_contact")
     return result
-
-
-# projectiles_explosions_tables_projectiles_explosions
-projectiles_explosions = read_to_dict(TWDBReader("projectiles_explosions_tables"))
-
-# effect_bonus_missile_junction
-effect_bonus_missile_junctions = read_to_dict_of_lists(TWDBReader("effect_bonus_value_missile_weapon_junctions_tables"), "effect")
 
 
 def positive_str(stat, indent=0):
@@ -486,7 +475,7 @@ def explosion_stats(explosion_row, projectile_types, indent=0):
 # trajectory_sight, max_elevation
 # category: misc ignores shields
 # calibration area, distance (the area in square meter a projectile aims, and the area guaranteed to hit at the calibration_distance range)
-def missile_stats(projectile_row, unit, projectile_types, indent, trajectory=True, ):
+def missile_stats(projectile_row, unit, projectile_types, indent, projectiles_explosions, trajectory=True, ):
     projectile_text = ""
     building = " "
 
@@ -574,6 +563,7 @@ def missile_stats(projectile_row, unit, projectile_types, indent, trajectory=Tru
         projectile_text += explosion_stats(explosion_row, projectile_types, indent + 2)
     return projectile_text
 
+
 # todo: fix slowdown at execution
 def melee_weapon_stats(melee_id, indent=0):
     unit_desc = ""
@@ -611,13 +601,13 @@ def melee_weapon_stats(melee_id, indent=0):
     return unit_desc
 
 
-def missile_weapon_stats(missile_weapon, unit, projectile_types, title="ranged", indent=0):
+def missile_weapon_stats(missile_weapon, unit, projectile_types, projectiles_explosions, title="ranged", indent=0):
     weapon_projectile = read_column_to_dict(TWDBReader("missile_weapons_tables"), "key", "default_projectile")
     weapon_secondary_ammo = read_column_to_dict(TWDBReader("missile_weapons_tables"), "key", "use_secondary_ammo_pool")
 
     # weapon additional projectiles
     weapon_alt_projectile = read_column_to_dict_of_lists(TWDBReader("missile_weapons_to_projectiles_tables"), "missile_weapon", "projectile")
-    
+
     projectile_text = ""
     projectile_id = weapon_projectile[missile_weapon]
     name = ""
@@ -625,7 +615,7 @@ def missile_weapon_stats(missile_weapon, unit, projectile_types, title="ranged",
         name = "(secondary ammo)"
     projectile_text += indent_str(indent) + title + name + ":" + "\\\\n"
     projectile_row = projectile_types[projectile_id]
-    projectile_text += missile_stats(projectile_row, unit, projectile_types, indent + 2)
+    projectile_text += missile_stats(projectile_row, unit, projectile_types, projectiles_explosions, indent + 2)
     if missile_weapon in weapon_alt_projectile:
         for alt_projectile_id in weapon_alt_projectile[missile_weapon]:
             alt_projectile_row = projectile_types[alt_projectile_id]
@@ -635,7 +625,7 @@ def missile_weapon_stats(missile_weapon, unit, projectile_types, title="ranged",
             if weapon_secondary_ammo[missile_weapon] == "true":
                 name += "(secondary ammo)"
             projectile_text += indent_str(indent) + title + " (" + name + "):" + "\\\\n"
-            projectile_text += missile_stats(alt_projectile_row, unit, projectile_types, indent + 2)
+            projectile_text += missile_stats(alt_projectile_row, unit, projectile_types, projectiles_explosions, indent + 2)
     return projectile_text
 
 
@@ -695,7 +685,7 @@ def get_missile_weapon_junctions():
 # only_affect_owned_units - If it's affecting friendly units, it only affects those in the same army as the owner
 # spawn_is_decoy - If spawning a unit the new one will be understood as a decoy of the owner one, the UI will show data for the owning one
 # spawn_is_transformation - If spawning a unit will mean the owner unit will be replaced by the spawned one
-def unit_abilities_table(unit_ability_loc_writer, ability_details, projectile_types, missile_weapon_for_junction):
+def unit_abilities_table(unit_ability_loc_writer, ability_details, projectile_types, missile_weapon_for_junction, projectiles_explosions):
     unit_ability_writer = TWDBReader("unit_abilities_tables").data_into_writer()
 
     # tracks sets already populated
@@ -706,6 +696,7 @@ def unit_abilities_table(unit_ability_loc_writer, ability_details, projectile_ty
     unit_set_ability_writer = TWDBReader("unit_set_unit_ability_junctions_tables").data_into_writer()
 
     effect_bonus_ability_writer = TWDBReader("effect_bonus_value_unit_set_unit_ability_junctions_tables").data_into_writer()
+    effect_bonus_missile_junctions = read_to_dict_of_lists(TWDBReader("effect_bonus_value_missile_weapon_junctions_tables"), "effect")
 
     ability_proto_map = {"icon_name": "ranged_weapon_stat",
                          "is_hidden_in_ui": "false",
@@ -775,7 +766,7 @@ def unit_abilities_table(unit_ability_loc_writer, ability_details, projectile_ty
             unit_ability_loc_writer.new_rows.append(ability_name_row)
             ability_text_row = unit_ability_loc_writer.make_row()
             ability_text_row["key"] = "unit_abilities_tooltip_text_" + ability_id
-            ability_text_row["text"] = missile_weapon_stats(weapon_id, None, projectile_types)
+            ability_text_row["text"] = missile_weapon_stats(weapon_id, None, projectile_types, projectiles_explosions)
             ability_text_row["tooltip"] = "true"
             unit_ability_loc_writer.new_rows.append(ability_text_row)
             ability_row = unit_ability_writer.make_row(ability_proto_map)
@@ -830,7 +821,7 @@ def unit_abilities_table(unit_ability_loc_writer, ability_details, projectile_ty
     effect_bonus_ability_writer.write()
 
 
-def main_units_tables(missile_weapon_junctions, projectile_types):
+def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_explosions):
     land_unit_to_spawn_info = {}
 
     land_units = read_to_dict(TWDBReader("land_units_tables"))
@@ -1067,7 +1058,7 @@ def main_units_tables(missile_weapon_junctions, projectile_types):
             if len(ranged_weapons_set) > 1:
                 print("missile weapon conflict (land unit):" + unit["key"])
             for missile_weapon in ranged_weapons_set:
-                unit_desc += missile_weapon_stats(missile_weapon, unit, projectile_types, indent=indent)
+                unit_desc += missile_weapon_stats(missile_weapon, unit, projectile_types, projectiles_explosions, indent=indent)
 
             for personality_id in unit_personalities:
                 unit_personality = battle_personalities[personality_id]
@@ -1123,7 +1114,7 @@ def main_units_tables(missile_weapon_junctions, projectile_types):
     bullet_point_enums_writer.write()
     bullet_point_override_writer.write()
     bullet_points_loc_writer.write()
-    
+
     return land_unit_to_spawn_info
 
 
@@ -1158,7 +1149,7 @@ def main_units_tables(missile_weapon_junctions, projectile_types):
 # delay_between_vortexes
 
 # todo: fix major slowdown in execution
-def ability_descriptions(unit_ability_loc_reader, unit_ability_loc_writer, projectile_types, ability_details, land_unit_to_spawn_info):
+def ability_descriptions(unit_ability_loc_reader, unit_ability_loc_writer, projectile_types, ability_details, land_unit_to_spawn_info, projectiles_explosions):
     bombardments = read_to_dict(TWDBReader("projectile_bombardments_tables"), "bombardment_key")
     vortices = read_to_dict(TWDBReader("battle_vortexs_tables"), "vortex_key")
     ability_phases = read_column_to_dict_of_lists(TWDBReader("special_ability_to_special_ability_phase_junctions_tables"), "special_ability", "phase")
@@ -1205,12 +1196,12 @@ def ability_descriptions(unit_ability_loc_reader, unit_ability_loc_writer, proje
                         result += named_stat("start_time", bombardment["start_time"], 2)
                         result += named_stat("arrival_window", bombardment["arrival_window"], 2)
                         bomb_projectile = projectile_types[bombardment["projectile_type"]]
-                        result += missile_stats(bomb_projectile, None, projectile_types, 2)
+                        result += missile_stats(bomb_projectile, None, projectile_types, projectiles_explosions, 2)
                         result += "\\\\n"
                     if ability["activated_projectile"] != "":
                         result += "Projectile:"
                         projectile = projectile_types[ability["activated_projectile"]]
-                        result += missile_stats(projectile, None, projectile_types, 2)
+                        result += missile_stats(projectile, None, projectile_types, projectiles_explosions, 2)
                         result += "\\\\n"
                     if ability["vortex"] != "":
                         result += "Vortex:" + "\\\\n"
@@ -1312,12 +1303,9 @@ def get_fatigue_effects(fatigue_order):
 # magic res: ui/campaign ui/effect_bundles/resistance_magic
 # ranged res: ui/campaign ui/effect_bundles/resistance_missile
 # fire res: ui/campaign ui/effect_bundles/resistance_fire
-kv_rules = read_column_to_dict(TWDBReader("_kv_rules_tables"), "key", "value")
-kv_morale = read_column_to_dict(TWDBReader("_kv_morale_tables"), "key", "value")
-kv_fatigue = read_column_to_dict(TWDBReader("_kv_fatigue_tables"), "key", "value")
 
-
-def stat_descriptions(fatigue_order, fatigue_effects, stat_icons):
+def stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_icons):
+    kv_fatigue = read_column_to_dict(TWDBReader("_kv_fatigue_tables"), "key", "value")
 
     with TWLocDBReader("unit_stat_localisations") as db_reader:
         db_writer = db_reader.make_writer()
@@ -1428,7 +1416,8 @@ def stat_descriptions(fatigue_order, fatigue_effects, stat_icons):
                 new_text += "Calibration range, beyond accuracy falls greatly" + '||'
                 new_text += "Calibration area, area where all shots land" + '||'
                 new_text += "The longer the range and smaller the area the better" + '||'
-                new_text += 'due to technical limits those are only visible in the "hover here for stats" on the unit card' + '||'  # todo: things like missile penetration. lethality seems to contradict other stat descriptions but doesn't seem obsolete as they weren't there in shogun2  # need to do more testing before adding them in
+                new_text += 'due to technical limits those are only visible in the "hover here for stats" on the unit card' + '||'
+                # todo: things like missile penetration. lethality seems to contradict other stat descriptions but doesn't seem obsolete as they weren't there in shogun2  # need to do more testing before adding them in
 
             if key == "unit_stat_localisations_tooltip_text_stat_missile_strength":
                 new_text += "|| ||Height relative to target affects damage by up to +/-" + stat_str(float(kv_rules["missile_height_damage_modifier_max_coefficient"]) * 100) + "% at +/- " + stat_str(kv_rules["missile_height_damage_modifier_max_difference"]) + 'm' + '||'
@@ -1438,7 +1427,7 @@ def stat_descriptions(fatigue_order, fatigue_effects, stat_icons):
         db_writer.write()
 
 
-def attribute_descriptions():
+def attribute_descriptions(kv_morale):
     with TWLocDBReader("unit_attributes") as db_reader:
         db_writer = db_reader.make_writer()
         for new_row in db_reader.rows_iter:
@@ -1465,7 +1454,7 @@ def attribute_descriptions():
         db_writer.write()
 
 
-def random_localisation_strings(fatigue_order, fatigue_effects, stat_icons):
+def random_localisation_strings(kv_rules, fatigue_order, fatigue_effects, stat_icons):
     with TWLocDBReader("random_localisation_strings") as db_reader:
         db_writer = db_reader.make_writer()
         for new_row in db_reader.rows_iter:
@@ -1550,9 +1539,13 @@ def main():
     unit_ability_loc_writer = unit_ability_loc_reader.make_writer()
 
     # set parameters used in multiple functions
-    missile_weapon_junctions, missile_weapon_for_junction = get_missile_weapon_junctions()
     ability_details = read_to_dict(TWDBReader("unit_special_abilities_tables"))
     projectile_types = read_to_dict(TWDBReader("projectiles_tables"))
+    missile_weapon_junctions, missile_weapon_for_junction = get_missile_weapon_junctions()
+
+    projectiles_explosions = read_to_dict(TWDBReader("projectiles_explosions_tables"))
+
+    fatigue_order = ["active", "winded", "tired", "very_tired", "exhausted"]
 
     stat_icons = {"accuracy": "accuracy", "armour": icon("icon_stat_armour"),
                   "charge_bonus": icon("icon_stat_charge_bonus"), "charging": icon("icon_stat_charge_bonus"),
@@ -1561,24 +1554,25 @@ def main():
                   "morale": icon("icon_stat_morale"), "range": icon("icon_stat_range"),
                   "reloading": icon("icon_stat_reload_time"), "speed": icon("icon_stat_speed")}
 
-    fatigue_order = ["active", "winded", "tired", "very_tired", "exhausted"]
+    kv_rules = read_column_to_dict(TWDBReader("_kv_rules_tables"), "key", "value")
+    kv_morale = read_column_to_dict(TWDBReader("_kv_morale_tables"), "key", "value")
 
-    unit_abilities_table(unit_ability_loc_writer, ability_details, projectile_types, missile_weapon_for_junction)
+    unit_abilities_table(unit_ability_loc_writer, ability_details, projectile_types, missile_weapon_for_junction, projectiles_explosions)
 
-    land_unit_to_spawn_info = main_units_tables(missile_weapon_junctions, projectile_types)
+    land_unit_to_spawn_info = main_units_tables(missile_weapon_junctions, projectile_types, projectiles_explosions)
 
     ability_descriptions(unit_ability_loc_reader, unit_ability_loc_writer, projectile_types, ability_details,
-                         land_unit_to_spawn_info)
+                         land_unit_to_spawn_info, projectiles_explosions)
 
     fatigue_effects = get_fatigue_effects(fatigue_order)
 
     component_texts(stat_icons)
 
-    stat_descriptions(fatigue_order, fatigue_effects, stat_icons)
+    stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_icons)
 
-    attribute_descriptions()
+    attribute_descriptions(kv_morale)
 
-    random_localisation_strings(fatigue_order, fatigue_effects, stat_icons)
+    random_localisation_strings(kv_rules, fatigue_order, fatigue_effects, stat_icons)
 
     make_package()
 
