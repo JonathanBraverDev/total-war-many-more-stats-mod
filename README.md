@@ -101,32 +101,26 @@ python generate.py "path/to/rpfm_cli.exe"
 
 #### Tooltips
 
-![](images/wh2_tooltips_1.png)
+![](images/old_speed_tooltip.png)
 ![](images/old_morale_tooltip.png)
-![](images/wh2_tooltips_3.png)
-![](images/wh2_tooltips_4.png)
+![](images/old_experiance_tooltip.png)
 
 #### Spells
 
-![](images/wh2_spells_1.png)
-![](images/wh2_spells_2.png)
-![](images/wh2_spells_3.png)
-![](images/wh2_spells_4.png)
-![](images/wh2_spells_5.png)
+![](images/spell_simple.png)
+![](images/spell_complex.png)
+![](images/spell_with_rng.png)
 
 #### Unit stats
 
-![](images/wh2_units_1.png)
-![](images/wh2_units_2.png)
-![](images/wh2_units_3.png)
-![](images/wh2_units_4.png)
+![](images/unit_stats_complex.png)
+![](images/unit_stats_simple.png)
+![](images/unit_stats_secondary_weapon.png)
 
 #### Unit campaign mods
 
-![](images/wh2_campaign_unitmods_1.png)
-![](images/wh2_campaign_unitmods_2.png)
-![](images/wh2_campaign_unitmods_3.png)
-![](images/wh2_campaign_unitmods_4.png)
+![](images/unit_campaign_weapon_complex.png)
+![](images/unit_campaign_weapon_simple.png)
 
 ## Total War Rome 2
 
