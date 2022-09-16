@@ -1332,61 +1332,71 @@ def stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_
             if key == "unit_stat_localisations_tooltip_text_stat_morale":
                 morale_text = "Leadership mechanics: ||"
                 morale_text += "total hp loss:" + '||'
-                morale_text += indent_str(2) + " 10% " + smart_str(
-                    kv_morale["total_casualties_penalty_10"]) + " 20% " + smart_str(
-                    kv_morale["total_casualties_penalty_20"]) + " 30% " + smart_str(
-                    kv_morale["total_casualties_penalty_30"]) + " 40% " + smart_str(
-                    kv_morale["total_casualties_penalty_40"]) + " 50% " + smart_str(
-                    kv_morale["total_casualties_penalty_50"]) + '||'
-                morale_text += indent_str(2) + " 60% " + smart_str(
-                    kv_morale["total_casualties_penalty_60"]) + " 70% " + smart_str(
-                    kv_morale["total_casualties_penalty_70"]) + " 80% " + smart_str(
-                    kv_morale["total_casualties_penalty_80"]) + " 90% " + smart_str(
-                    kv_morale["total_casualties_penalty_90"]) + " 100% " + "um...?" '||'
-                morale_text += "60s hp loss:" + " 10% " + smart_str(
-                    kv_morale["extended_casualties_penalty_10"]) + " 15% " + smart_str(
-                    kv_morale["extended_casualties_penalty_15"]) + " 33% " + smart_str(
-                    kv_morale["extended_casualties_penalty_33"]) + " 50% " + smart_str(
-                    kv_morale["extended_casualties_penalty_50"]) + " 80% " + smart_str(
-                    kv_morale["extended_casualties_penalty_80"]) + '||'
-                morale_text += "4s hp loss:" + " 6% " + smart_str(
-                    kv_morale["recent_casualties_penalty_6"]) + " 10% " + smart_str(
-                    kv_morale["recent_casualties_penalty_10"]) + " 15% " + smart_str(
-                    kv_morale["recent_casualties_penalty_15"]) + " 33% " + smart_str(
-                    kv_morale["recent_casualties_penalty_33"]) + " 50% " + smart_str(
-                    kv_morale["recent_casualties_penalty_50"]) + '||'
+                morale_text += indent_str(2) +\
+                               " 10% " + smart_str(kv_morale["total_casualties_penalty_10"]) +\
+                               " 20% " + smart_str(kv_morale["total_casualties_penalty_20"]) +\
+                               " 30% " + smart_str(kv_morale["total_casualties_penalty_30"]) +\
+                               " 40% " + smart_str(kv_morale["total_casualties_penalty_40"]) +\
+                               " 50% " + smart_str(kv_morale["total_casualties_penalty_50"]) + '||'
+                morale_text += indent_str(2) +\
+                               " 60% " + smart_str(kv_morale["total_casualties_penalty_60"]) +\
+                               " 70% " + smart_str(kv_morale["total_casualties_penalty_70"]) +\
+                               " 80% " + smart_str(kv_morale["total_casualties_penalty_80"]) +\
+                               " 90% " + smart_str(kv_morale["total_casualties_penalty_90"]) +\
+                               " 100% " + "um...?" + '||'
+                morale_text += "60s hp loss:" +\
+                               " 10% " + smart_str(kv_morale["extended_casualties_penalty_10"]) +\
+                               " 15% " + smart_str(kv_morale["extended_casualties_penalty_15"]) +\
+                               " 33% " + smart_str(kv_morale["extended_casualties_penalty_33"]) +\
+                               " 50% " + smart_str(kv_morale["extended_casualties_penalty_50"]) +\
+                               " 80% " + smart_str(kv_morale["extended_casualties_penalty_80"]) + '||'
+                morale_text += "4s hp loss:" +\
+                               " 6% " + smart_str(kv_morale["recent_casualties_penalty_6"]) +\
+                               " 10% " + smart_str(kv_morale["recent_casualties_penalty_10"]) +\
+                               " 15% " + smart_str(kv_morale["recent_casualties_penalty_15"]) + \
+                               " 33% " + smart_str(kv_morale["recent_casualties_penalty_33"]) + \
+                               " 50% " + smart_str(kv_morale["recent_casualties_penalty_50"]) + '||'
                 morale_text += "charging: " + smart_str(kv_morale["charge_bonus"]) + " timeout " + stat_str(float(kv_morale["charge_timeout"]) / 10) + "s||"
-                morale_text += "attacked in" + " side " + smart_str(
-                    kv_morale["was_attacked_in_flank"]) + " back " + smart_str(
-                    kv_morale["was_attacked_in_rear"]) + '||'
-                morale_text += "general's death: " + smart_str(
-                    kv_morale["ume_concerned_general_dead"]) + " recent death or retreat " + smart_str(
-                    kv_morale["ume_concerned_general_died_recently"]) + '||'
-                morale_text += "army loses: " + smart_str(
-                    kv_morale["ume_concerned_army_destruction"]) + " power lost: " + stat_str((1 - float(kv_morale["army_destruction_alliance_strength_ratio"])) * 100) + "% and balance is " + stat_str((1.0 / float(kv_morale["army_destruction_enemy_strength_ratio"])) * 100) + '%||'
+                morale_text += "attacked in" + \
+                               " side " + smart_str(kv_morale["was_attacked_in_flank"]) +\
+                               " back " + smart_str(kv_morale["was_attacked_in_rear"]) + '||'
+                morale_text += "general's death: " + smart_str(kv_morale["ume_concerned_general_dead"]) +\
+                               " recent death or retreat " + smart_str(kv_morale["ume_concerned_general_died_recently"]) + '||'
+                morale_text += "army loses: " + smart_str(kv_morale["ume_concerned_army_destruction"]) +\
+                               " power lost: " + stat_str((1 - float(kv_morale["army_destruction_alliance_strength_ratio"])) * 100) + "% and balance is " + stat_str((1.0 / float(kv_morale["army_destruction_enemy_strength_ratio"])) * 100) + '%||'
                 morale_text += "wavering:" + " " + stat_str(kv_morale["ums_wavering_threshold_lower"]) + "-" + stat_str(kv_morale["ums_wavering_threshold_upper"]) + '||'
                 morale_text += indent_str(2) + "must spend at least " + stat_str(float(kv_morale["waver_base_timeout"]) / 10) + "s wavering before routing||"
                 morale_text += "broken:" + " " + stat_str(kv_morale["ums_broken_threshold_lower"]) + "-" + stat_str(kv_morale["ums_broken_threshold_upper"]) + '||'
                 morale_text += indent_str(2) + "max rally count before shattered " + stat_str(float(kv_morale["shatter_after_rout_count"]) - 1) + '||'
-                morale_text += "shock rout if 4s hp loss is over " + stat_str(kv_morale["recent_casualties_shock_threshold"]) + "% and morale < 0"
+                morale_text += "shock rout if 4s hp loss is over " + stat_str(kv_morale["recent_casualties_shock_threshold"]) + "% and morale < 0"  # todo: confirm 0 morale
                 new_row["text"] = morale_text
+                # todo: add back local power morale penalty, its pretty big, but also relatively intuitive
 
             if key == "unit_stat_localisations_tooltip_text_scalar_speed":
-                new_text += "|| || Fatigue effects: ||"
+                speed_text = "Fatigue mechanics: ||"
+                speed_text += ''
                 for fatigue_level in fatigue_order:
-                    new_text += fatigue_level + ": "
+                    speed_text += fatigue_level + ": "
                     for stat in fatigue_effects[fatigue_level]:
-                        new_text += " " + stat_icons[stat] + "" + stat_str(float(fatigue_effects[fatigue_level][stat]) * 100) + "%"
-                    new_text += '||'
+                        speed_text += " " + stat_icons[stat] + "" + stat_str(float(fatigue_effects[fatigue_level][stat]) * 100) + "%"
+                    speed_text += '||'
 
-                new_text += " || Tiring/Resting per 1/10 second: ||"
+                speed_text += " || Tiring/Resting per 1/10 second: ||"
+                fatigue_names = ["idle", "bracing", "walking", "walking artillery", "running", "running cavalry", "charging", "in melee", "shooting", "climbing ladders"]
                 kv_fatigue_vals = ["idle", "ready", "walking", "walking_artillery", "running", "running_cavalry", "charging", "combat", "shooting", "climbing_ladders"]
-                for fatigue_val in kv_fatigue_vals:
-                    new_text += fatigue_val + " " + smart_str(kv_fatigue[fatigue_val], affinity=-1) + '||'
+                for fatigue_index in range(len(kv_fatigue_vals)):
+                    speed_text += fatigue_names[fatigue_index] + ' ' + smart_str(kv_fatigue[kv_fatigue_vals[fatigue_index]], affinity=-1) + '||'
 
+                fatigue_names = ["shallow slope", "medium slope", "steep slope"]
                 kv_fatigue_vals = ["gradient_shallow_movement_multiplier", "gradient_steep_movement_multiplier", "gradient_very_steep_movement_multiplier"]
-                for fatigue_val in kv_fatigue_vals:
-                    new_text += fatigue_val + " " + smart_str(float(kv_fatigue[fatigue_val]) + 100, affinity=-1) + '%' + '||'
+                for fatigue_index in range(len(kv_fatigue_vals)):
+                    speed_text += "moving on " + fatigue_names[fatigue_index] + ' ' + smart_str(float(kv_fatigue[kv_fatigue_vals[fatigue_index]]) + 100, affinity=-1) + '%' + '||'
+                    # todo: is the experience reduction before the % or after?
+                    #       run 9 rank up hill, it should tire them if after
+                    # todo: is movement penalty only up hill? is it positive downhill?
+                    # todo: what is 'steep' exactly?
+
+                new_row["text"] = speed_text
 
             if key == "unit_stat_localisations_tooltip_text_stat_melee_attack":
                 new_text += "|| ||Melee hit chance formula: ||" + stat_str(kv_rules["melee_hit_chance_base"]) + "% + attacker " + icon("icon_stat_attack") + " - defender " + icon("icon_stat_defence") + '||'
@@ -1506,6 +1516,7 @@ def component_texts(stat_icons):
                     # verified ingame that the stats are using math rounding to integer for exp bonuses
                     result[bonus_stat] = stat_str(round(growth_scalar * rank))
                 else:  # "base"+"^" + stat_str(growth_rate) + "*" + stat_str(growth_scalar * rank)
+                    # todo: add explanation, i tried to brute force that part for about an hour WITH the table open
                     result[bonus_stat] = stat_str(round((30.0 ** growth_rate) * growth_scalar * rank)) + " " + stat_str(round((60.0 ** growth_rate) * growth_scalar * rank))
             rank_bonuses[key] = result
 
