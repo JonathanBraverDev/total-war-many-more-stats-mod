@@ -1,0 +1,7 @@
+python generate.py "E:/modkits/Warhammer 2 modkit/all unit stats display/additional requrments/rpfm_cli.exe"
+
+MAKE SURE the varible "twgame_path" is pointing to the actual install location
+
+shirt click to open a powershell in this folder
+copy the ENTIRE first line
+the path is included with the program but set the folder accordingly
