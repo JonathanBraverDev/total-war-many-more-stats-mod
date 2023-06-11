@@ -173,7 +173,7 @@ class TWDBWriter:
     def write(self):
         os.makedirs(os.path.dirname(f"{output_path}/{self.tsv_file_path}"), exist_ok=True)
         self.tsv_file = open(f"{output_path}/{self.tsv_file_path}", 'w', newline="", encoding="utf-8")
-        self.tsv_writer = csv.writer(self.tsv_file, delimiter='\t', quoting=csv.QUOTE_NONE, quotechar='')
+        self.tsv_writer = csv.writer(self.tsv_file, delimiter='\t', quoting=csv.QUOTE_NONE, quotechar='"', escapechar='\\')
         for row in self.head_rows:
             self.tsv_writer.writerow(row)
         for row in self.new_rows:
@@ -1357,6 +1357,7 @@ def stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_
                                " 33% " + smart_str(kv_morale["recent_casualties_penalty_33"]) + \
                                " 50% " + smart_str(kv_morale["recent_casualties_penalty_50"]) + '||'
                 morale_text += "charging: " + smart_str(kv_morale["charge_bonus"]) + " timeout " + stat_str(float(kv_morale["charge_timeout"]) / 10) + "s||"
+                morale_text += "high ground vs all enemies " + smart_str(kv_morale["ume_encouraged_on_the_hill"]) + "||"
                 morale_text += "attacked in" + \
                                " side " + smart_str(kv_morale["was_attacked_in_flank"]) +\
                                " back " + smart_str(kv_morale["was_attacked_in_rear"]) + '||'
@@ -1370,7 +1371,8 @@ def stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_
                 morale_text += indent_str(2) + "max rally count before shattered " + stat_str(float(kv_morale["shatter_after_rout_count"]) - 1) + '||'
                 morale_text += "shock rout if 4s hp loss is over " + stat_str(kv_morale["recent_casualties_shock_threshold"]) + "% and morale < 0"  # todo: confirm 0 morale
                 new_row["text"] = morale_text
-                # todo: add back local power morale penalty, its pretty big, but also relatively intuitive
+                # todo: add back local power morale penalty?, its pretty big, but also relatively intuitive
+                # todo: add back arrow/arty hits?, also relatively intuitive
 
             if key == "unit_stat_localisations_tooltip_text_scalar_speed":
                 speed_text = "Fatigue mechanics: ||"
@@ -1395,6 +1397,7 @@ def stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_
                     #       run 9 rank up hill, it should tire them if after
                     # todo: is movement penalty only up hill? is it positive downhill?
                     # todo: what is 'steep' exactly?
+                    # todo: add point limit for each fatigue level?
 
                 new_row["text"] = speed_text
 
