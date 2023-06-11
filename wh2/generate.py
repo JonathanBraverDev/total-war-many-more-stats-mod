@@ -173,7 +173,7 @@ class TWDBWriter:
     def write(self):
         os.makedirs(os.path.dirname(f"{output_path}/{self.tsv_file_path}"), exist_ok=True)
         self.tsv_file = open(f"{output_path}/{self.tsv_file_path}", 'w', newline="", encoding="utf-8")
-        self.tsv_writer = csv.writer(self.tsv_file, delimiter='\t', quoting=csv.QUOTE_NONE, quotechar='"', escapechar='\\')
+        self.tsv_writer = csv.writer(self.tsv_file, delimiter='\t', quoting=csv.QUOTE_NONE, quotechar='"', escapechar='\n')
         for row in self.head_rows:
             self.tsv_writer.writerow(row)
         for row in self.new_rows:
