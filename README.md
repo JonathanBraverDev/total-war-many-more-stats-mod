@@ -26,7 +26,7 @@ old tooltips
 you'd need [RPFM](https://github.com/Frodo45127/rpfm) to rebuild the mod, follow the instructions in the almost empty folder
 last verified for version [v3.0.16](https://github.com/Frodo45127/rpfm/releases/tag/v3.0.16), any version between the original mod support and this should work
 4.0 is incompatible as of now due to the command restructure.
-איק
+
 
 nothing will work out the box for you btw, everything is tied to my folder structure 
 
