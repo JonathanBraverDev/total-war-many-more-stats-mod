@@ -266,7 +266,7 @@ def read_column_to_dict_of_lists(db_reader, key, column):
 # affects_allies
 # affects_enemies
 # replenish_ammo: How much ammunition is replenished when the phase starts (negative values will spend ammo instead), this value is a percentage of unit max ammo
-def ability_damage_stat(base, ignition, magic, title="dmg"):
+def ability_damage_stat(base, ignition, magic, title="damage"):
     type_str = ""
     if magic == "true":
         type_str += "[[img:ui/skins/default/modifier_icon_magical.png]][[/img]]"
@@ -390,16 +390,17 @@ def named_stat(name, stat, indent=0):
 # [[img:path]] image
 # {{tr:}} - locale? (translation)
 # [[col]]
-def damage_stat(base, ap, ignition, magic, title="dmg"):
+def damage_stat(base, ap, ignition, magic, title="damage"):
     type_str = ""
     if magic == "true":
         type_str += "[[img:ui/skins/default/modifier_icon_magical.png]][[/img]]"
     if float(ignition) != 0:
         type_str += "[[img:ui/skins/default/modifier_icon_flaming.png]][[/img]]"
     armor_piercing_percent = ""
-    if float(base) != 0:
-        armor_piercing_percent = "(" + stat_str(num_str(round(float(ap) * 100 / (float(base) + float(ap)), 2)) + "%") + ")"
-    return title + ": " + stat_str(base) + "+ap:" + stat_str(ap) + armor_piercing_percent + type_str
+    # if float(base) != 0:
+    #     armor_piercing_percent = "(" + stat_str(num_str(round(float(ap) * 100 / (float(base) + float(ap)), 2)) + "%") + ")"
+    return title + " " + stat_str(base) + "+ap:" + stat_str(ap) + armor_piercing_percent + type_str
+    # todo: add damage type icons (normal, ap)
 
 
 def icon(name):
@@ -421,7 +422,7 @@ def icon_res(name):
 # shrapnel: launches another projectile (projectile_shrapnels, amount is num of projectiles )
 def explosion_stats(explosion_row, projectile_types, projectiles_explosions, indent=0):
     projectile_text = ""
-    projectile_text += indent_str(indent) + damage_stat(explosion_row["detonation_damage"], explosion_row["detonation_damage_ap"], explosion_row["ignition_amount"], explosion_row["is_magical"], "per_entity_dmg") + "\\\\n"
+    projectile_text += indent_str(indent) + damage_stat(explosion_row["detonation_damage"], explosion_row["detonation_damage_ap"], explosion_row["ignition_amount"], explosion_row["is_magical"], "damage per model") + "\\\\n"
     projectile_text += named_stat("radius", explosion_row["detonation_radius"], indent)
 
     shrapnel = read_to_dict(TWDBReader("projectile_shrapnels_tables"))
@@ -477,15 +478,27 @@ def explosion_stats(explosion_row, projectile_types, projectiles_explosions, ind
 # calibration area, distance (the area in square meter a projectile aims, and the area guaranteed to hit at the calibration_distance range)
 def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions, indent, trajectory=True):
     projectile_text = ""
-    building = " "
+    targets = " "
+    checkmark = "\u2713" + " "  # todo: fix this, nothing shows up
+    crossmark = "\u274C" + " "
 
     if projectile_row["can_damage_buildings"] == "true":
-        building += "@buildings "
+        targets += checkmark
+    else:
+        targets += crossmark
+    targets += "buildings "
     if projectile_row["can_damage_vehicles"] == "true":
-        building += "@vehicles "
+        targets += checkmark
+    else:
+        targets += crossmark
+    targets += "vehicles "
     if projectile_row["can_target_airborne"] == "true":
-        building += "@airborne "
-    projectile_text += indent_str(indent) + damage_stat(projectile_row["damage"], projectile_row["ap_damage"], projectile_row["ignition_amount"], projectile_row["is_magical"]) + building + "\\\\n"
+        targets += checkmark
+    else:
+        targets += crossmark
+    targets += "flying"
+
+    projectile_text += indent_str(indent) + damage_stat(projectile_row["damage"], projectile_row["ap_damage"], projectile_row["ignition_amount"], projectile_row["is_magical"]) + targets + "\\\\n"
 
     # calibration: distance, area, spread
     volley = ""
@@ -513,7 +526,7 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
     if category == "misc" or category == "artillery":
         category += "(ignores shields)"
     projectile_text += indent_str(indent) + "category: " + stat_str(category) + " spin " + stat_str(projectile_row["spin_type"].replace("_spin", "", 1)) + "\\\\n"
-    if projectile_row["minimum_range"] != "0.0":
+    if projectile_row["minimum_range"] != "0":
         projectile_text += named_stat("min_range", projectile_row["minimum_range"], indent)
 
     impact = ""
@@ -522,7 +535,7 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
     if projectile_row["can_roll"] == "true":
         impact += "roll "
     if projectile_row["shockwave_radius"] != "-1.0":
-        impact += "shockwave_radius " + projectile_row["shockwave_radius"]
+        impact += "shockwave radius " + projectile_row["shockwave_radius"]
 
     if trajectory:
         # sight - celownik
@@ -552,19 +565,18 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
     if projectile_row["homing_params"] != "":
         projectile_text += named_stat("homing", "true", indent)
     if projectile_row["bonus_v_infantry"] != '0':
-        projectile_text += named_stat("bonus vs nonlarge", projectile_row["bonus_v_infantry"], indent)
+        projectile_text += named_stat("bonus vs infantry", projectile_row["bonus_v_infantry"], indent)
     if projectile_row["bonus_v_large"] != '0':
-        projectile_text += named_stat("bonus_vs_large ", projectile_row["bonus_v_large"], indent)
+        projectile_text += named_stat("bonus vs large ", projectile_row["bonus_v_large"], indent)
     # todo: projectile_homing details
     # projectile_scaling_damages - scales damage with somebody's health
-    if projectile_row["explosion_type"] != "":
+    if projectile_row["explosion_type"] != "":  # todo: add damage type icons (normal, ap)
         explosion_row = projectiles_explosions[projectile_row["explosion_type"]]
         projectile_text += named_stat("explosion:", "", indent)
         projectile_text += explosion_stats(explosion_row, projectile_types, projectiles_explosions, indent + 2)
     return projectile_text
 
 
-# todo: fix slowdown at execution
 def melee_weapon_stats(melee_id, indent=0):
     unit_desc = ""
     melee_weapons = read_to_dict(TWDBReader("melee_weapons_tables"))
@@ -579,21 +591,21 @@ def melee_weapon_stats(melee_id, indent=0):
     building = ""
     if int(melee_row["building_damage"]) > 0:
         building = " (building: " + stat_str(melee_row["building_damage"]) + ")"  # what about kv_rules["melee_weapon_building_damage_mult"]?
-    unit_desc += indent_str(indent) + damage_stat(melee_row["damage"], melee_row["ap_damage"], melee_row["ignition_amount"], melee_row["is_magical"], "melee_dmg") + building + "\\\\n"
-    unit_desc += named_stat("melee_reach", melee_row["weapon_length"], indent)
+    unit_desc += indent_str(indent) + damage_stat(melee_row["damage"], melee_row["ap_damage"], melee_row["ignition_amount"], melee_row["is_magical"], "melee attack") + building + "\\\\n"
+    unit_desc += named_stat("melee range", melee_row["weapon_length"], indent)
     total_dmg = int(melee_row["damage"]) + int(melee_row["ap_damage"])
     dp10s = (float(total_dmg) * 10) / float(melee_row["melee_attack_interval"])
-    unit_desc += indent_str(indent) + "melee_interval " + stat_str(melee_row["melee_attack_interval"]) + " dp10s " + derived_stat_str(round(dp10s, 0)) + "\\\\n"
+    unit_desc += indent_str(indent) + "melee cooldown " + stat_str(melee_row["melee_attack_interval"]) + " dp10s " + derived_stat_str(round(dp10s, 0)) + "\\\\n"
     if melee_row["bonus_v_infantry"] != "0":
-        unit_desc += named_stat("bonus_v_nonlarge", melee_row["bonus_v_infantry"], indent)
+        unit_desc += named_stat("bonus vs infantry", melee_row["bonus_v_infantry"], indent)
     # never set:stats["bonus_v_cav"] = melee_row["bonus_v_cavalry"]
     if melee_row["bonus_v_large"] != "0":
-        unit_desc += named_stat("bonus_v_large", melee_row["bonus_v_large"], indent)
+        unit_desc += named_stat("bonus vs large", melee_row["bonus_v_large"], indent)
     if melee_row["splash_attack_target_size"] != "":
-        unit_desc += named_stat("splash dmg:", "", indent)
+        unit_desc += named_stat("splash damage:", "", indent)
         # confirmed by ca: blank means no splash damage
         unit_desc += named_stat("target_size", "<=" + melee_row["splash_attack_target_size"], indent + 2)
-        unit_desc += indent_str(indent + 2) + "max_targets " + stat_str(melee_row["splash_attack_max_attacks"]) + " dmg_each " + derived_stat_str(round(total_dmg / float(melee_row["splash_attack_max_attacks"]), 0)) + "\\\\n"
+        unit_desc += indent_str(indent + 2) + "max_targets " + stat_str(melee_row["splash_attack_max_attacks"]) + " damage each " + derived_stat_str(round(total_dmg / float(melee_row["splash_attack_max_attacks"]), 0)) + "\\\\n"
         if float(melee_row["splash_attack_power_multiplier"]) != 1.0:
             unit_desc += named_stat("knockback mult", round(float(melee_row["splash_attack_power_multiplier"]), 1), indent + 2)
     if melee_row["collision_attack_max_targets"] != "0":
@@ -887,12 +899,12 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
             num_men = int(main_unit_entry["num_men"])
 
             if unit["campaign_action_points"] != "2100":
-                stats["campaign_range"] = unit["campaign_action_points"]
+                stats["campaign range"] = unit["campaign_action_points"]
             if unit["hiding_scalar"] != "1.0":
-                stats["hiding_scalar"] = unit["hiding_scalar"]
+                stats["hiding scalar"] = unit["hiding_scalar"]
             if unit["shield"] != "none":
-                stats["missile_block"] = shield_types[unit["shield"]] + "%"
-            stats["capture_power"] = unit["capture_power"]  # also apparently dead vehicles have capture power?
+                stats["missile block"] = shield_types[unit["shield"]] + "%"
+            stats["capture power"] = unit["capture_power"]  # also apparently dead vehicles have capture power?
             # land_unit
             # todo: spot dist tree/ spot dist scrub/
             # hiding scalar -This affects the range that the unit can be spotted at, less than 1 makes it longer, greater than 1 shorter. So 1.5 would increase the spotters' range by +50%
@@ -901,7 +913,7 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
             # visibility_spotting_range_min/max
             # attribute group - lists attributes
             if main_unit_entry["is_high_threat"] == "true":
-                unit_desc += stat_str("high_threat (focuses enemy attack and splash damage)") + "\\\\n"
+                unit_desc += stat_str("high_threat") + "\\\\n"
 
             entity = battle_entities[unit["man_entity"]]
             # entity column doc
@@ -922,10 +934,10 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
             # can_cast_projectile: does this entity cast a projectile spell
 
             if entity["hit_reactions_ignore_chance"] != "0":
-                stats["hit_reactions_ignore"] = entity["hit_reactions_ignore_chance"] + "%"
+                stats["hit reactions ignore"] = entity["hit_reactions_ignore_chance"] + "%"
 
             if entity["knock_interrupts_ignore_chance"] != "0":
-                stats["knock_interrupts_ignore"] = entity["knock_interrupts_ignore_chance"] + "%"
+                stats["knock interrupts ignore"] = entity["knock_interrupts_ignore_chance"] + "%"
 
             # officer entities, weapons and missiles - sometimes there's no primary weapon/missile, but officers have one and that's shown on the stat screen
             # example: Ikit variant doomwheel
@@ -1021,9 +1033,9 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
                 mass += float(support_entity["mass"])
                 health += int(support_entity["hit_points"])
 
-            stats["health (ultra scale)"] = num_str(health)
+            stats["max health (ultra scale)"] = num_str(health)
             stats["mass"] = num_str(mass)
-            target_size = "nonlarge" if size == "small" else "large"
+            target_size = "small" if size == "small" else "large"
             stats["size"] = size + " (" + target_size + " target)"
 
             if len(melee_weapons_set) > 1:
@@ -1031,7 +1043,7 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
             for melee_id in melee_weapons_set:
                 unit_desc += melee_weapon_stats(melee_id)
 
-            unit_desc += indent_str(indent) + "run_speed " + stat_str(speed) + " charge " + stat_str(charge_speed) + " acceleration " + stat_str(accel * 10) + "\\\\n"
+            unit_desc += indent_str(indent) + "run speed " + stat_str(speed) + " charge " + stat_str(charge_speed) + " acceleration " + stat_str(accel * 10) + "\\\\n"
             if fly_speed != 0:
                 unit_desc += indent_str(indent) + "fly_speed " + stat_str(fly_speed) + " charge " + stat_str(fly_charge_speed) + "\\\\n"
 
@@ -1039,11 +1051,11 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
             if unit["ground_stat_effect_group"] != "" and unit["ground_stat_effect_group"] in ground_type_stats:
                 ground_types = ground_type_stats[unit["ground_stat_effect_group"]]
 
-                unit_desc += "ground effects (negatives are cancelled by strider attr): " + "\\\\n"
+                unit_desc += "movement penalties (ignored by strider): " + "\\\\n"
                 for gtype in ground_types:
                     stat_desc = gtype + ": "
                     for stat_row in ground_types[gtype]:
-                        stat_desc += stat_row["affected_stat"].replace("scalar_", "", 1).replace("stat_", "", 1) + " * " + stat_str(stat_row["multiplier"]) + " "
+                        stat_desc += stat_row["affected_stat"].replace("scalar_", "", 1).replace("stat_", "", 1).replace("_", " ") + " * " + stat_str(stat_row["multiplier"]) + " "
                     unit_desc += indent_str(indent + 2) + stat_desc + "\\\\n"
 
             # ammo is the number of full volleys (real ammo is num volleys * num people)
@@ -1054,7 +1066,7 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
                 unit_desc += named_stat(stat, stats[stat], indent)
 
             if main_unit_entry["unit"] in missile_weapon_junctions:
-                unit_desc += stat_str("ranged_weapon_replacement_available_in_campaign [[img:ui/battle ui/ability_icons/ranged_weapon_stat.png]][[/img]]") + "\\\\n"
+                unit_desc += stat_str("alternative ranged weapon available in campaign [[img:ui/battle ui/ability_icons/ranged_weapon_stat.png]][[/img]]") + "\\\\n"
 
             if len(ranged_weapons_set) > 1:
                 print("missile weapon conflict (land unit):" + unit["key"])
@@ -1149,7 +1161,6 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
 # launch_source_offset- distance from launch_source
 # delay_between_vortexes
 
-# todo: fix major slowdown in execution
 def ability_descriptions(unit_ability_loc_reader, unit_ability_loc_writer, projectile_types, ability_details, land_unit_to_spawn_info, projectiles_explosions):
     bombardments = read_to_dict(TWDBReader("projectile_bombardments_tables"), "bombardment_key")
     vortices = read_to_dict(TWDBReader("battle_vortexs_tables"), "vortex_key")
@@ -1412,7 +1423,7 @@ def stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_
 
             if key == "unit_stat_localisations_tooltip_text_stat_charge_bonus":
                 new_text += "|| ||Charge bonus lasts for " + stat_str(kv_rules["charge_cool_down_time"] + "s") + " after first contact, linearly going down to 0. ||"
-                new_text += "Charge bonus is added to melee attack and weapon damage. The additional weapon damage is split between ap and base dmg according to the unit's current ratio||"
+                new_text += "Charge bonus is added to melee attack and weapon damage. The additional weapon damage is split between ap and base damage according to the unit's current ratio||"
                 new_text += "All attacks on routed units are using charge bonus *" + stat_str(kv_rules["pursuit_charge_bonus_modifier"]) + '||'
                 new_text += " || Bracing: ||"
                 new_text += indent_str(2) + "bracing is a multiplier (clamped to " + stat_str(kv_rules["bracing_max_multiplier_clamp"]) + ") to the mass of the charged unit for comparison vs a charging one||"
@@ -1426,11 +1437,10 @@ def stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_
             if key == "unit_stat_localisations_tooltip_text_scalar_missile_range":
                 new_text += "|| ||Trees/scrub block " + stat_str(float(kv_rules["missile_target_in_cover_penalty"]) * 100) + "% of incoming missiles" + '||'
                 new_text += "Friendly fire uses hitboxes that are " + stat_str(kv_rules["projectile_friendly_fire_man_height_coefficient"]) + " higher and " + stat_str(kv_rules["projectile_friendly_fire_man_radius_coefficient"]) + " wider " + "||  ||"
-                new_text += "Accuracy is determined by a few parameters" + '||'
-                new_text += "Calibration range, beyond accuracy falls greatly" + '||'
-                new_text += "Calibration area, area where all shots land" + '||'
-                new_text += "The longer the range and smaller the area the better" + '||'
-                new_text += 'due to technical limits those are only visible in the "hover here for stats" on the unit card' + '||'
+                new_text += "Accuracy is determined by calibration range and area," + '||'
+                new_text += "all shots land within the cal.area at the cal.range" + '||'
+                new_text += "Longer range and smaller area mean better accuracy"
+                new_text += "|| || Those are only visible in the added `Hover` stat" + '||'
                 # todo: things like missile penetration. lethality seems to contradict other stat descriptions but doesn't seem obsolete as they weren't there in shogun2  # need to do more testing before adding them in
 
             if key == "unit_stat_localisations_tooltip_text_stat_missile_strength":
@@ -1461,7 +1471,7 @@ def attribute_descriptions(kv_morale):
                 new_text += "encourage unit's effect in full effect range " + smart_str(
                     kv_morale["unit_inspire_effect_amount"])
             if key == "unit_attributes_bullet_text_strider":
-                new_text += "||this includes speed decrease on slopped terrain, melee and missile dmg reduction from being downhill, ground_stat_type, fatigue penalties from terrain, etc."
+                new_text += "||this includes speed decrease on slopped terrain, melee and missile damage reduction from being downhill, ground_stat_type, fatigue penalties from terrain, etc."
             for s in stat:
                 new_text += '||' + s + ": " + stat_str(stat[s])
             new_row["text"] += new_text
