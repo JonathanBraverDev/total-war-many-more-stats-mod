@@ -9,8 +9,9 @@ extract_path = "extract"
 output_path = "output"
 template_path = "template"
 mod_name = "More unit stats"
-install_path = os.path.expanduser("~") + f"/Documents/TWMods/{game_name}/{mod_name}.pack"
+# install_path = os.path.expanduser("~") + f"/Documents/TWMods/{game_name}/{mod_name}.pack"  # to documents
 game_path = "E:/SteamLibrary/steamapps/common/Total War WARHAMMER II"
+install_path = f"{game_path}/data/{mod_name}.pack"  # direct game install
 
 arg_parser = argparse.ArgumentParser(description="Generates the mod packfile to Documents/TWMods/")
 arg_parser.add_argument("path_to_rpfm_cli", help="path to rpfm_cli.exe used for extracting and creating mod files")
@@ -268,10 +269,10 @@ def read_column_to_dict_of_lists(db_reader, key, column):
 # replenish_ammo: How much ammunition is replenished when the phase starts (negative values will spend ammo instead), this value is a percentage of unit max ammo
 def ability_damage_stat(base, ignition, magic, title="damage"):
     type_str = ""
-    if magic == "true":
-        type_str += "[[img:ui/skins/default/modifier_icon_magical.png]][[/img]]"
     if float(ignition) != 0:
         type_str += "[[img:ui/skins/default/modifier_icon_flaming.png]][[/img]]"
+    if magic == "true":
+        type_str += "[[img:ui/skins/default/modifier_icon_magical.png]][[/img]]"
     return title + ": " + stat_str(base) + type_str
 
 
@@ -292,12 +293,12 @@ def ability_phase_details_stats(phase_id, indent=0, title=""):
         col = "green"
     elif details["effect_type"] == "negative":
         col = "red"
-    replenish_ammo = "replenish_ammo: " + num_str(details["replenish_ammo"]) + " " if details["replenish_ammo"] != "0.0" else ""
-    recharge_time = "recharge_time: " + num_str(details["recharge_time"]) + " " if details["recharge_time"] != "-1.0" else ""
-    mana_regen_mod = "mana_recharge_mod: " + num_str(details["mana_regen_mod"]) + " " if details["mana_regen_mod"] != "0.0" else ""
-    mana_max_depletion_mod = "mana_reserves_mod: " + num_str(details["mana_max_depletion_mod"]) + " " if details["mana_max_depletion_mod"] != "0.0" else ""
-    aura_range_mod = "inspiration_range_mod: " + num_str(details["inspiration_aura_range_mod"]) + " " if details["inspiration_aura_range_mod"] != "0.0" else ""
-    ability_recharge_change = "reduce_current_cooldowns: " + num_str(details["ability_recharge_change"]) + " " if details["ability_recharge_change"] != "0.0" else ""
+    replenish_ammo = "replenish ammo: " + num_str(details["replenish_ammo"]) + " " if details["replenish_ammo"] != "0.0" else ""
+    recharge_time = "recharge time: " + num_str(details["recharge_time"]) + " " if details["recharge_time"] != "-1.0" else ""
+    mana_regen_mod = "mana recharge mod: " + num_str(details["mana_regen_mod"]) + " " if details["mana_regen_mod"] != "0.0" else ""
+    mana_max_depletion_mod = "mana reserves mod: " + num_str(details["mana_max_depletion_mod"]) + " " if details["mana_max_depletion_mod"] != "0.0" else ""
+    aura_range_mod = "inspiration range mod: " + num_str(details["inspiration_aura_range_mod"]) + " " if details["inspiration_aura_range_mod"] != "0.0" else ""
+    ability_recharge_change = "reduce current cooldowns: " + num_str(details["ability_recharge_change"]) + " " if details["ability_recharge_change"] != "0.0" else ""
     result += indent_str(indent) + title + "[[col:" + col + "]] " + duration + replenish_ammo + unbreakable + mana_regen_mod + mana_max_depletion_mod + cant_move + freeze_fatigue + fatigue_change_ratio + aura_range_mod + ability_recharge_change + recharge_time + "[[/col]]" + "\\\\n"
     # affects_allies + affects_enemies +
     if int(details["heal_amount"]) != 0:
@@ -383,14 +384,14 @@ def derived_stat_str(stat):
 
 
 def named_stat(name, stat, indent=0):
-    return indent_str(indent) + name + " " + stat_str(stat) + "\\\\n"
+    return indent_str(indent) + name.replace("_", " ") + " " + stat_str(stat) + "\\\\n"
 
 
 # tags:
 # [[img:path]] image
 # {{tr:}} - locale? (translation)
 # [[col]]
-def damage_stat(base, ap, ignition, magic, title="damage"):
+def damage_stat(base, ap, ignition, magic, title="damage:"):
     type_str = ""
     if magic == "true":
         type_str += "[[img:ui/skins/default/modifier_icon_magical.png]][[/img]]"
@@ -431,7 +432,7 @@ def explosion_stats(explosion_row, projectile_types, projectiles_explosions, ind
         projectile_text += positive_str("doesn't_affect_allies", indent) + "\\\\n"
     if explosion_row["shrapnel"]:
         shrapnel_row = shrapnel[explosion_row["shrapnel"]]
-        projectile_text += named_stat("explosion_shrapnel:", "", indent)
+        projectile_text += named_stat("explosion shrapnel:", "", indent)
         if shrapnel_row["launch_type"] == "sector":
             projectile_text += named_stat("angle", shrapnel_row["sector_angle"], indent + 2)
         projectile_text += named_stat("amount", shrapnel_row["amount"], indent + 2)
@@ -479,23 +480,23 @@ def explosion_stats(explosion_row, projectile_types, projectiles_explosions, ind
 def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions, indent, trajectory=True):
     projectile_text = ""
     targets = " "
-    checkmark = "\u2713" + " "  # todo: fix this, nothing shows up
-    crossmark = "\u274C" + " "
+    checkmark = "[[img:ui/battle ui/ability_icons/greenCheckmark_small.png]][[/img]]"
+    xmark = "[[img:ui/battle ui/ability_icons/redX_small.png]][[/img]]"
 
     if projectile_row["can_damage_buildings"] == "true":
         targets += checkmark
     else:
-        targets += crossmark
+        targets += xmark
     targets += "buildings "
     if projectile_row["can_damage_vehicles"] == "true":
         targets += checkmark
     else:
-        targets += crossmark
+        targets += xmark
     targets += "vehicles "
     if projectile_row["can_target_airborne"] == "true":
         targets += checkmark
     else:
-        targets += crossmark
+        targets += xmark
     targets += "flying"
 
     projectile_text += indent_str(indent) + damage_stat(projectile_row["damage"], projectile_row["ap_damage"], projectile_row["ignition_amount"], projectile_row["is_magical"]) + targets + "\\\\n"
@@ -548,7 +549,7 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
         # - warp lightning: sight low, max elevation 50, fixed elev 45 vel 110, spin: none mass: 300 grav 6
         # - poison wind mortar globe: type artillery spin axe, sight fixed, max elevation 56, vel 90 grav -1, mass 25, fixed elev 50
         # - ratling gun: type musket spin none, max elevation 88, vel 120, grav -1, mass 5 fix elev 45
-        trajectory = "trajectory:"
+        trajectory = "trajectory: "
         trajectory += stat_str(projectile_row["trajectory_sight"])
         trajectory += " vel " + stat_str(projectile_row["muzzle_velocity"])
         trajectory += " max_angle " + stat_str(projectile_row["max_elevation"])
@@ -604,12 +605,12 @@ def melee_weapon_stats(melee_id, indent=0):
     if melee_row["splash_attack_target_size"] != "":
         unit_desc += named_stat("splash damage:", "", indent)
         # confirmed by ca: blank means no splash damage
-        unit_desc += named_stat("target_size", "<=" + melee_row["splash_attack_target_size"], indent + 2)
+        unit_desc += named_stat("target size", "<=" + melee_row["splash_attack_target_size"], indent + 2)
         unit_desc += indent_str(indent + 2) + "max_targets " + stat_str(melee_row["splash_attack_max_attacks"]) + " damage each " + derived_stat_str(round(total_dmg / float(melee_row["splash_attack_max_attacks"]), 0)) + "\\\\n"
         if float(melee_row["splash_attack_power_multiplier"]) != 1.0:
-            unit_desc += named_stat("knockback mult", round(float(melee_row["splash_attack_power_multiplier"]), 1), indent + 2)
+            unit_desc += named_stat("knockback multiplier", round(float(melee_row["splash_attack_power_multiplier"]), 1), indent + 2)
     if melee_row["collision_attack_max_targets"] != "0":
-        unit_desc += indent_str(indent) + " collision: max targets " + stat_str(melee_row["collision_attack_max_targets"]) + " recharge_per_sec " + stat_str(melee_row["collision_attack_max_targets_cooldown"]) + "\\\\n"
+        unit_desc += indent_str(indent) + " collision: max targets " + stat_str(melee_row["collision_attack_max_targets"]) + " recharge per sec " + stat_str(melee_row["collision_attack_max_targets_cooldown"]) + "\\\\n"
 
     return unit_desc
 
@@ -1051,10 +1052,10 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
             if unit["ground_stat_effect_group"] != "" and unit["ground_stat_effect_group"] in ground_type_stats:
                 ground_types = ground_type_stats[unit["ground_stat_effect_group"]]
 
-                unit_desc += "movement penalties (ignored by strider): " + "\\\\n"
-                for gtype in ground_types:
-                    stat_desc = gtype + ": "
-                    for stat_row in ground_types[gtype]:
+                unit_desc += "terrain effects (negative ignored by strider): " + "\\\\n"
+                for ground_type in ground_types:
+                    stat_desc = ground_type.replace("_", " ") + ": "
+                    for stat_row in ground_types[ground_type]:
                         stat_desc += stat_row["affected_stat"].replace("scalar_", "", 1).replace("stat_", "", 1).replace("_", " ") + " * " + stat_str(stat_row["multiplier"]) + " "
                     unit_desc += indent_str(indent + 2) + stat_desc + "\\\\n"
 
@@ -1177,23 +1178,23 @@ def ability_descriptions(unit_ability_loc_reader, unit_ability_loc_writer, proje
                     ability = ability_details[description_id]
 
                     if ability["passive"] == "false":
-                        result += named_stat("cast_time", ability["wind_up_time"])
-                        result += named_stat("active_time", ability["active_time"])
+                        result += named_stat("cast time", ability["wind_up_time"])
+                        result += named_stat("active time", ability["active_time"])
                         initial_recharge = ""
                         if float(ability["initial_recharge"]) > 0:
                             initial_recharge = ", initial " + ability["initial_recharge"]
-                        result += named_stat("recharge_time", ability["recharge_time"] + initial_recharge)
+                        result += named_stat("recharge time", ability["recharge_time"] + initial_recharge)
                         if float(ability["min_range"]) > 0:
-                            result += named_stat("min_range", ability["min_range"] + initial_recharge)
+                            result += named_stat("min range", ability["min_range"] + initial_recharge)
 
                     if int(ability["num_effected_friendly_units"]) > 0:
-                        result += named_stat("affected_friendly_units", ability["num_effected_friendly_units"])
+                        result += named_stat("affected friendly units", ability["num_effected_friendly_units"])
                     if int(ability["num_effected_enemy_units"]) > 0:
-                        result += named_stat("affected_enemy_units", ability["num_effected_enemy_units"])
+                        result += named_stat("affected enemy units", ability["num_effected_enemy_units"])
                     if ability["only_affect_owned_units"] == "true":
-                        result += named_stat("only_affect_owned_units", ability["only_affect_owned_units"])
+                        result += named_stat("only affect owned units", ability["only_affect_owned_units"])
                     if ability["update_targets_every_frame"] == "true":
-                        result += named_stat("update_targets_every_frame", ability["update_targets_every_frame"])
+                        result += named_stat("update targets every frame", ability["update_targets_every_frame"])
 
                     if ability["assume_specific_behaviour"]:
                         result += named_stat("behaviour", ability["assume_specific_behaviour"])
@@ -1201,12 +1202,12 @@ def ability_descriptions(unit_ability_loc_reader, unit_ability_loc_writer, proje
                     if ability["bombardment"] != "":
                         bombardment = bombardments[ability["bombardment"]]
                         result += "Bombardment:" + "\\\\n"
-                        result += named_stat("num_bombs", bombardment["num_projectiles"], 2)
-                        result += named_stat("radius_spread", bombardment["radius_spread"], 2)
-                        result += named_stat("launch_source", bombardment["launch_source"], 2)
-                        result += named_stat("launch_height", bombardment["launch_height"], 2)
-                        result += named_stat("start_time", bombardment["start_time"], 2)
-                        result += named_stat("arrival_window", bombardment["arrival_window"], 2)
+                        result += named_stat("num bombs", bombardment["num_projectiles"], 2)
+                        result += named_stat("radius spread", bombardment["radius_spread"], 2)
+                        result += named_stat("launch source", bombardment["launch_source"], 2)
+                        result += named_stat("launch height", bombardment["launch_height"], 2)
+                        result += named_stat("start time", bombardment["start_time"], 2)
+                        result += named_stat("arrival window", bombardment["arrival_window"], 2)
                         bomb_projectile = projectile_types[bombardment["projectile_type"]]
                         result += missile_stats(bomb_projectile, None, projectile_types, projectiles_explosions, 2)
                         result += "\\\\n"
@@ -1227,14 +1228,14 @@ def ability_descriptions(unit_ability_loc_reader, unit_ability_loc_writer, proje
                             radius = "start " + stat_str(vortex["start_radius"]) + " goal " + stat_str(vortex["goal_radius"]) + " expansion speed " + stat_str(vortex["expansion_speed"])
                         result += indent_str(indent) + "radius: " + radius + "\\\\n"
                         result += indent_str(indent) + damage_stat(vortex["damage"], vortex["damage_ap"], vortex["ignition_amount"], vortex["is_magical"]) + "\\\\n"
-                        result += named_stat("detonation_force", vortex["detonation_force"], indent)
-                        result += named_stat("initial_delay", vortex["delay"], indent)
+                        result += named_stat("detonation force", vortex["detonation_force"], indent)
+                        result += named_stat("initial delay", vortex["delay"], indent)
                         result += named_stat("duration", vortex["duration"], indent)
                         if vortex["building_collision"] == "2.expire":
                             result += indent_str(indent) + stat_str("building collision expires vortex") + "\\\\n"
-                        result += named_stat("launch_source", vortex["launch_source"], indent)
+                        result += named_stat("launch source", vortex["launch_source"], indent)
                         if vortex["launch_source_offset"] != "0.0":
-                            result += named_stat("launch_source_offset", vortex["launch_source_offset"], indent)
+                            result += named_stat("launch source offset", vortex["launch_source_offset"], indent)
                         if float(vortex["movement_speed"]) == 0:
                             path = "stationary"
                         elif vortex["change_max_angle"] == "0":
