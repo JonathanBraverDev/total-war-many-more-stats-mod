@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import argparse
+import math
 
 game_name = "warhammer_2"
 extract_path = "extract"
@@ -384,7 +385,7 @@ def derived_stat_str(stat):
 
 
 def named_stat(name, stat, indent=0):
-    return indent_str(indent) + name.replace("_", " ") + " " + stat_str(stat) + "\\\\n"
+    return indent_str(indent) + name + " " + stat_str(stat) + "\\\\n"
 
 
 # tags:
@@ -478,7 +479,6 @@ def explosion_stats(explosion_row, projectile_types, projectiles_explosions, ind
 # category: misc ignores shields
 # calibration area, distance (the area in square meter a projectile aims, and the area guaranteed to hit at the calibration_distance range)
 def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions, indent, trajectory=True):
-    projectile_text = ""
     targets = " "
     checkmark = "[[img:ui/battle ui/ability_icons/greenCheckmark_small.png]][[/img]]"
     xmark = "[[img:ui/battle ui/ability_icons/redX_small.png]][[/img]]"
@@ -499,29 +499,46 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
         targets += xmark
     targets += "flying"
 
-    projectile_text += indent_str(indent) + damage_stat(projectile_row["damage"], projectile_row["ap_damage"], projectile_row["ignition_amount"], projectile_row["is_magical"]) + targets + "\\\\n"
+    projectile_text = indent_str(indent) + damage_stat(projectile_row["damage"], projectile_row["ap_damage"], projectile_row["ignition_amount"], projectile_row["is_magical"]) + targets + "\\\\n"
 
-    # calibration: distance, area, spread
     volley = ""
     if projectile_row["shots_per_volley"] != "1":
-        volley += "shots_per_volley " + stat_str(projectile_row["shots_per_volley"])
+        volley += "shots per volley " + stat_str(projectile_row["shots_per_volley"])
     if projectile_row["burst_size"] != "1":
-        volley += "shots_per_volley " + stat_str(projectile_row["burst_size"]) + " interval " + stat_str(projectile_row["burst_shot_delay"])
+        volley += "shots per burst " + stat_str(projectile_row["burst_size"]) + " interval " + stat_str(
+            projectile_row["burst_shot_delay"])
     if projectile_row["projectile_number"] != "1":
-        volley += "projectiles_per_shot " + stat_str(projectile_row["projectile_number"])
-
-    central_targets = stat_str("closest_target")
-    if projectile_row["prefer_central_targets"] == "false":
-        central_targets = stat_str("central_target")
-
-    projectile_text += indent_str(indent) + "calibration: " + "area " + stat_str(projectile_row["calibration_area"]) + " distance " + stat_str(projectile_row["calibration_distance"]) + " prefers " + central_targets + "\\\\n"
-
+        volley += "projectiles per shot " + stat_str(projectile_row["projectile_number"])
+        # if projectile_row["spread"] != "0.0":  # todo: can units with no multi shot have spread?
+        volley += indent_str(indent) + "spread" + " " + stat_str(projectile_row["spread"])
     if volley != "":
         projectile_text += indent_str(indent) + volley + "\\\\n"
-    if unit is not None:
-        projectile_text += named_stat("accuracy", float(projectile_row["marksmanship_bonus"]) + float(unit["accuracy"]), indent)
-        reload_time = float(projectile_row["base_reload_time"]) * ((100 - float(unit["accuracy"])) * 0.01)
+
+    calibration_area = projectile_row["calibration_area"]
+    calibration_distance = projectile_row["calibration_distance"]
+    preferred_target = " prefers "
+    if projectile_row["prefer_central_targets"] == "false":
+        preferred_target += stat_str("central_target")
+    else:
+        preferred_target += stat_str("closest_target")
+
+    projectile_text += indent_str(indent) + "calibration: " + "area " + stat_str(calibration_area) + " distance " + stat_str(calibration_distance) + preferred_target + "\\\\n"
+
+    if unit is not None:  # todo: handle non-unit stuff a bit better
+        # normalized accuracy for all (proper) ranged units
+        normalization_distance = 75
+        if float(calibration_distance) >= normalization_distance:
+            normalization_factor = normalization_distance / float(calibration_distance)
+            normalized_area = float(calibration_area) * normalization_factor
+            # todo: add 'calibration coverage', requires the unit's max rage
+            projectile_text += indent_str(indent + 2) + "normalized: " + "area " + derived_stat_str(normalized_area) + " at " + derived_stat_str(normalization_distance) + "m (compare only like to like)" + "\\\\n"
+        else:
+            projectile_text += indent_str(indent + 2) + "calibration range too short, unit can hardly be considered ranged" + "\\\\n"
+
+        projectile_text += named_stat("accuracy",  float(projectile_row["marksmanship_bonus"]) + float(unit["accuracy"]), indent)
+        reload_time = float(projectile_row["base_reload_time"]) * ((100 - float(unit["accuracy"])) * 0.01)  # todo: this looks wrong. accuracy for reload?
         projectile_text += indent_str(indent) + "reload: " + "skill " + stat_str(unit["reload"]) + " time " + stat_str(reload_time) + "s (base" + stat_str(projectile_row["base_reload_time"]) + "s)" + "\\\\n"
+        # print(float(projectile_row["base_reload_time"]), ((100 - float(unit["accuracy"])) * 0.01), unit["reload"])
 
     category = projectile_row["category"]
     if category == "misc" or category == "artillery":
@@ -538,7 +555,8 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
     if projectile_row["shockwave_radius"] != "-1.0":
         impact += "shockwave radius " + projectile_row["shockwave_radius"]
 
-    if trajectory:
+    # todo: not sure where to put this: add rough 'power' scale to ammo use
+    if trajectory:  # todo: fix addition of many empty lines, some units with trajectory dont have the issue, not cause
         # sight - celownik
         # fixed - attached to the weapon
         # fixed trajectory != fixed sight?
@@ -556,13 +574,12 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
         trajectory += " fixed_angle " + stat_str(projectile_row["fixed_elevation"])
         trajectory += " mass " + stat_str(projectile_row["mass"])  # affects air resistance and shockwave force, doesn't affect speed/acceleration
         if float(projectile_row["gravity"]) != -1:
-            trajectory += " g " + stat_str(projectile_row["gravity"])  # default is 10?, affects fall/rise rate of projectile, maybe air resistance?
+            trajectory += " gravity " + stat_str(projectile_row["gravity"])  # default is 10?, affects fall/rise rate of projectile, maybe air resistance?
         projectile_text += indent_str(indent) + trajectory + "\\\\n"
+        # todo: is there a way to know a unit has a fixed cone of fire? Pistoliers vs Outriders for example
 
     if impact != "":
         projectile_text += named_stat("impact", impact, indent)
-    if projectile_row["spread"] != "0.0":
-        projectile_text += named_stat("spread", projectile_row["spread"], indent)
     if projectile_row["homing_params"] != "":
         projectile_text += named_stat("homing", "true", indent)
     if projectile_row["bonus_v_infantry"] != '0':
@@ -602,9 +619,8 @@ def melee_weapon_stats(melee_id, indent=0):
     # never set:stats["bonus_v_cav"] = melee_row["bonus_v_cavalry"]
     if melee_row["bonus_v_large"] != "0":
         unit_desc += named_stat("bonus vs large", melee_row["bonus_v_large"], indent)
-    if melee_row["splash_attack_target_size"] != "":
+    if melee_row["splash_attack_target_size"] != "":  # confirmed by ca: blank means no splash damage
         unit_desc += named_stat("splash damage:", "", indent)
-        # confirmed by ca: blank means no splash damage
         unit_desc += named_stat("target size", "<=" + melee_row["splash_attack_target_size"], indent + 2)
         unit_desc += indent_str(indent + 2) + "max_targets " + stat_str(melee_row["splash_attack_max_attacks"]) + " damage each " + derived_stat_str(round(total_dmg / float(melee_row["splash_attack_max_attacks"]), 0)) + "\\\\n"
         if float(melee_row["splash_attack_power_multiplier"]) != 1.0:
@@ -913,8 +929,9 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
             # training level: deprecated
             # visibility_spotting_range_min/max
             # attribute group - lists attributes
-            if main_unit_entry["is_high_threat"] == "true":
-                unit_desc += stat_str("high_threat") + "\\\\n"
+
+            # if main_unit_entry["is_high_threat"] == "true":
+            #     unit_desc += stat_str("high threat") + "\\\\n"
 
             entity = battle_entities[unit["man_entity"]]
             # entity column doc
@@ -997,7 +1014,7 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
             fly_speed = float(entity["fly_speed"]) * 10
             fly_charge_speed = float(entity["flying_charge_speed"]) * 10
             accel = float(entity["acceleration"])
-            size = entity["size"]
+            # size = entity["size"]
             if unit["engine"] != "":
                 # speed characteristics are always overridden by engine and mount, even if engine is engine_mounted == false (example: catapult), verified by comparing stats
                 engine = battle_entities[engine_entity[unit["engine"]]]
@@ -1008,8 +1025,9 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
                 fly_charge_speed = float(engine["flying_charge_speed"]) * 10
                 support_entities.append(engine_entity[unit["engine"]])
                 # only override size when engine is used as a mount (i.e. it's something you drive, not push), verified by comparing stats; overrides mount, verified by comparing stats
-                if engine_mounted[unit["engine"]]:
-                    size = engine["size"]
+
+                # if engine_mounted[unit["engine"]]:
+                #     size = engine["size"]
             if unit["articulated_record"] != "":  # never without an engine
                 support_entities.append(articulated_entity[unit["articulated_record"]])
             if unit["mount"] != "":
@@ -1023,8 +1041,8 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
                 fly_charge_speed = float(mount["flying_charge_speed"]) * 10
                 support_entities.append(mount_entity[unit["mount"]])
                 # verified that chariots use the size of the chariot, not the mount; skip overriding
-                if not (unit["engine"] != "" and engine_mounted[unit["engine"]]):
-                    size = engine["size"]
+                # if not (unit["engine"] != "" and engine_mounted[unit["engine"]]):
+                #     size = engine["size"]
 
             health = int(entity["hit_points"]) + int(unit["bonus_hit_points"])
             mass = float(entity["mass"])
@@ -1034,10 +1052,10 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
                 mass += float(support_entity["mass"])
                 health += int(support_entity["hit_points"])
 
-            stats["max health (ultra scale)"] = num_str(health)
+            stats["max health per entity (ultra scale)"] = num_str(health)
             stats["mass"] = num_str(mass)
-            target_size = "small" if size == "small" else "large"
-            stats["size"] = size + " (" + target_size + " target)"
+            # target_size = "small" if size == "small" else "large"
+            # stats["size"] = size + " (" + target_size + " target)"
 
             if len(melee_weapons_set) > 1:
                 print("melee weapon conflict (land unit):" + unit["key"])
@@ -1056,7 +1074,7 @@ def main_units_tables(missile_weapon_junctions, projectile_types, projectiles_ex
                 for ground_type in ground_types:
                     stat_desc = ground_type.replace("_", " ") + ": "
                     for stat_row in ground_types[ground_type]:
-                        stat_desc += stat_row["affected_stat"].replace("scalar_", "", 1).replace("stat_", "", 1).replace("_", " ") + " * " + stat_str(stat_row["multiplier"]) + " "
+                        stat_desc += stat_row["affected_stat"].replace("scalar_", "", 1).replace("stat_", "", 1).replace("_", " ") + " x" + stat_str(stat_row["multiplier"]) + " "
                     unit_desc += indent_str(indent + 2) + stat_desc + "\\\\n"
 
             # ammo is the number of full volleys (real ammo is num volleys * num people)
@@ -1370,21 +1388,23 @@ def stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_
                                " 50% " + smart_str(kv_morale["recent_casualties_penalty_50"]) + '||'
                 morale_text += "charging: " + smart_str(kv_morale["charge_bonus"]) + " timeout " + stat_str(float(kv_morale["charge_timeout"]) / 10) + "s||"
                 morale_text += "high ground vs all enemies " + smart_str(kv_morale["ume_encouraged_on_the_hill"]) + "||"
-                morale_text += "attacked in" + \
+                morale_text += "small-arm hits " + smart_str(kv_morale["ume_concerned_attacked_by_projectile"]) + " (can coexist with artillery)" + '||'
+                morale_text += "artillery: miss within " + stat_str(math.sqrt(float(kv_morale["artillery_near_miss_distance_squared"]))) + "m " + smart_str(kv_morale["ume_concerned_attacked_by_artillery"]) +\
+                               " direct hit " + smart_str(kv_morale["ume_concerned_damaged_by_artillery"]) + '||'
+                morale_text += "attacked in: " +\
                                " side " + smart_str(kv_morale["was_attacked_in_flank"]) +\
                                " back " + smart_str(kv_morale["was_attacked_in_rear"]) + '||'
-                morale_text += "general's death: " + smart_str(kv_morale["ume_concerned_general_dead"]) +\
-                               " recent death or retreat " + smart_str(kv_morale["ume_concerned_general_died_recently"]) + '||'
+                morale_text += "lord's death: " + smart_str(kv_morale["ume_concerned_general_dead"]) +\
+                               " recent death or retreat " + smart_str(kv_morale["ume_concerned_general_died_recently"]) + '||'  # todo: tested fled and dead, same temporary debuf, cant find time constant (50-60ish)
                 morale_text += "army loses: " + smart_str(kv_morale["ume_concerned_army_destruction"]) +\
-                               " power lost: " + stat_str((1 - float(kv_morale["army_destruction_alliance_strength_ratio"])) * 100) + "% and balance is " + stat_str((1.0 / float(kv_morale["army_destruction_enemy_strength_ratio"])) * 100) + '%||'
+                               " power lost " + stat_str((1 - float(kv_morale["army_destruction_alliance_strength_ratio"])) * 100) + "% and balance is " + stat_str((1.0 / float(kv_morale["army_destruction_enemy_strength_ratio"])) * 100) + '%||'
                 morale_text += "wavering:" + " " + stat_str(kv_morale["ums_wavering_threshold_lower"]) + "-" + stat_str(kv_morale["ums_wavering_threshold_upper"]) + '||'
                 morale_text += indent_str(2) + "must spend at least " + stat_str(float(kv_morale["waver_base_timeout"]) / 10) + "s wavering before routing||"
                 morale_text += "broken:" + " " + stat_str(kv_morale["ums_broken_threshold_lower"]) + "-" + stat_str(kv_morale["ums_broken_threshold_upper"]) + '||'
                 morale_text += indent_str(2) + "max rally count before shattered " + stat_str(float(kv_morale["shatter_after_rout_count"]) - 1) + '||'
-                morale_text += "shock rout if 4s hp loss is over " + stat_str(kv_morale["recent_casualties_shock_threshold"]) + "% and morale < 0"  # todo: confirm 0 morale
+                morale_text += "shock rout if 4s hp loss is over " + stat_str(kv_morale["recent_casualties_shock_threshold"]) + "% and morale < 0"  # todo: confirm morale
                 new_row["text"] = morale_text
-                # todo: add back local power morale penalty?, its pretty big, but also relatively intuitive
-                # todo: add back arrow/arty hits?, also relatively intuitive
+                # all included modifies are explaining a game mechanic or hinting at helpful actions the player can take
 
             if key == "unit_stat_localisations_tooltip_text_scalar_speed":
                 speed_text = "Fatigue mechanics: ||"
@@ -1423,21 +1443,21 @@ def stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_
                 new_text += "(min: " + stat_str(kv_rules["melee_hit_chance_min"]) + " max: " + stat_str(kv_rules["melee_hit_chance_max"]) + ")"
 
             if key == "unit_stat_localisations_tooltip_text_stat_charge_bonus":
-                new_text += "|| ||Charge bonus lasts for " + stat_str(kv_rules["charge_cool_down_time"] + "s") + " after first contact, linearly going down to 0. ||"
+                new_text += "|| ||Charge bonus lasts for " + stat_str(kv_rules["charge_cool_down_time"] + "s") + " after first contact, linearly decaying to 0. ||"
                 new_text += "Charge bonus is added to melee attack and weapon damage. The additional weapon damage is split between ap and base damage according to the unit's current ratio||"
-                new_text += "All attacks on routed units are using charge bonus *" + stat_str(kv_rules["pursuit_charge_bonus_modifier"]) + '||'
+                new_text += "All attacks on routed units are using charge bonus x" + stat_str(kv_rules["pursuit_charge_bonus_modifier"]) + '||'
                 new_text += " || Bracing: ||"
-                new_text += indent_str(2) + "bracing is a multiplier (clamped to " + stat_str(kv_rules["bracing_max_multiplier_clamp"]) + ") to the mass of the charged unit for comparison vs a charging one||"
-                new_text += indent_str(2) + "to brace the unit must stand still in formation (exact time to get in formation varies) and not attack/fire||"
-                new_text += indent_str(2) + "bracing will only apply for attacks coming from the front in a " + stat_str(float(kv_rules["bracing_attack_angle"]) * 2) + "° arc||"
-                new_text += indent_str(2) + "bracing from ranks: 1: " + stat_str(1.0) + " ranks 2-" + stat_str(kv_rules["bracing_calibration_ranks"]) + " add " + stat_str((float(kv_rules["bracing_calibration_ranks_multiplier"]) - 1) / (float(kv_rules["bracing_calibration_ranks"]) - 1)) + '||'
+                new_text += "bracing is a multiplier (clamped to " + stat_str(kv_rules["bracing_max_multiplier_clamp"]) + ") to the mass of the charged unit for comparison vs a charging one||"
+                new_text += "to brace the unit must stand still in formation (exact time to get in formation varies) and not attack/fire||"
+                new_text += "bracing will only apply for attacks coming from the front in a " + stat_str(float(kv_rules["bracing_attack_angle"]) * 2) + "° arc||"
+                new_text += "bracing from ranks: 1: " + stat_str(1.0) + " ranks 2-" + stat_str(kv_rules["bracing_calibration_ranks"]) + " add " + stat_str((float(kv_rules["bracing_calibration_ranks_multiplier"]) - 1) / (float(kv_rules["bracing_calibration_ranks"]) - 1)) + '||'
 
             if key == "unit_stat_localisations_tooltip_text_stat_weapon_damage":
                 new_text += "|| ||Height relative to target affects damage by up to +/-" + stat_str(float(kv_rules["melee_height_damage_modifier_max_coefficient"]) * 100) + "% at +/- " + stat_str(kv_rules["melee_height_damage_modifier_max_difference"]) + 'm'
 
             if key == "unit_stat_localisations_tooltip_text_scalar_missile_range":
                 new_text += "|| ||Trees/scrub block " + stat_str(float(kv_rules["missile_target_in_cover_penalty"]) * 100) + "% of incoming missiles" + '||'
-                new_text += "Friendly fire uses hitboxes that are " + stat_str(kv_rules["projectile_friendly_fire_man_height_coefficient"]) + " higher and " + stat_str(kv_rules["projectile_friendly_fire_man_radius_coefficient"]) + " wider " + "||  ||"
+                new_text += "Friendly fire uses hitboxes that are x" + stat_str(kv_rules["projectile_friendly_fire_man_height_coefficient"]) + " higher and x" + stat_str(kv_rules["projectile_friendly_fire_man_radius_coefficient"]) + " wider " + "||  ||"
                 new_text += "Accuracy is determined by calibration range and area," + '||'
                 new_text += "all shots land within the cal.area at the cal.range" + '||'
                 new_text += "Longer range and smaller area mean better accuracy"
@@ -1556,7 +1576,9 @@ def component_texts(stat_icons):
 
 
 def main():
-    reload_data = True   # todo: check of files exist and run if not
+    # todo: check of files exist and run if not
+    # todo: split into 2 runner files, one unpack and one regenerate, waiting takes forever...
+    reload_data = True
     if reload_data:
         extract_packfiles()
 
