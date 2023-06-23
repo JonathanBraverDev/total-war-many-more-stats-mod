@@ -18,12 +18,14 @@ arg_parser = argparse.ArgumentParser(description="Generates the mod packfile to 
 arg_parser.add_argument("path_to_rpfm_cli", help="path to rpfm_cli.exe used for extracting and creating mod files")
 arg_parser.add_argument("-g", dest="path_to_game", default=game_path, help=f"path to the main directory of {game_name}(default: {game_path})")
 arg_parser.add_argument("-i", dest="install_path", default=install_path, help=f"path where to install the mod file (default: {install_path})")
+arg_parser.add_argument("-r", dest="do_rebuild", default=True, help="Rebuild CSV files?")
 
 init_args = arg_parser.parse_args()
 
 rpfmcli_path = init_args.path_to_rpfm_cli
 game_path = init_args.path_to_game
 install_path = init_args.install_path
+do_rebuild = init_args.do_rebuild
 
 
 def run_rpfm(packfile, *args):
@@ -488,7 +490,7 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
     else:
         targets += xmark
     targets += "buildings "
-    if projectile_row["can_damage_vehicles"] == "true":
+    if projectile_row["can_damage_vehicles"] == "true":  # todo: redundant with the other two? is it for siege weapons?
         targets += checkmark
     else:
         targets += xmark
@@ -531,6 +533,8 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
             normalization_factor = normalization_distance / float(calibration_distance)
             normalized_area = float(calibration_area) * normalization_factor
             # todo: add 'calibration coverage', requires the unit's max rage
+            # todo: add more accurate 'score' at the calibration distance, i want something linear
+            # todo: estimate area outside of calibration distance, 100m for example, 120...
             projectile_text += indent_str(indent + 2) + "normalized: " + "area " + derived_stat_str(normalized_area) + " at " + derived_stat_str(normalization_distance) + "m (compare only like to like)" + "\\\\n"
         else:
             projectile_text += indent_str(indent + 2) + "calibration range too short, unit can hardly be considered ranged" + "\\\\n"
@@ -555,7 +559,10 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
     if projectile_row["shockwave_radius"] != "-1.0":
         impact += "shockwave radius " + projectile_row["shockwave_radius"]
 
-    # todo: not sure where to put this: add rough 'power' scale to ammo use
+    # todo: add CP calculation/values to units (Combat Potential)
+    #       calculation for ranged cp
+    #       melee cp
+    #       and... campaign modifiers... that's impossible dynamically but there must be A formula i can show
     if trajectory:  # todo: fix addition of many empty lines, some units with trajectory dont have the issue, not cause
         # sight - celownik
         # fixed - attached to the weapon
@@ -641,7 +648,7 @@ def missile_weapon_stats(missile_weapon, unit, projectile_types, projectiles_exp
     projectile_text = ""
     projectile_id = weapon_projectile[missile_weapon]
     name = ""
-    if weapon_secondary_ammo[missile_weapon] == "true":
+    if weapon_secondary_ammo[missile_weapon] == "true":  # todo: MASSIVE eyesore from gunnery wright shotgun and this
         name = "(secondary ammo)"
     projectile_text += indent_str(indent) + title + name + ":" + "\\\\n"
     projectile_row = projectile_types[projectile_id]
@@ -1291,7 +1298,22 @@ def ability_descriptions(unit_ability_loc_reader, unit_ability_loc_writer, proje
     unit_ability_loc_writer.write()
 
 
-def get_fatigue_effects(fatigue_order):
+def get_fatigue_order_limits():
+    kv_fatigue = read_column_to_dict(TWDBReader("_kv_fatigue_tables"), "key", "value")
+    fatigue_order_limits = []
+
+    # find all fatigue levels
+    for key, value in kv_fatigue.items():
+        if "threshold_" in key:
+            fatigue_order_limits.append((key.replace("threshold_", "", 1), float(value)))
+
+    # sort by value
+    fatigue_order_limits.sort(key=lambda x: x[1])
+
+    return fatigue_order_limits
+
+
+def get_fatigue_effects(fatigue_order_limits):
     fatigue_effects = {}
     with TWDBReader("unit_fatigue_effects_tables") as db_reader:
         for row in db_reader.rows_iter:
@@ -1299,10 +1321,12 @@ def get_fatigue_effects(fatigue_order):
             stat = row["stat"].replace("scalar_", "", 1).replace("stat_", "", 1)
             if key not in fatigue_effects:
                 fatigue_effects[key] = {}
-            fatigue_effects[key][stat] = row["value"]
+            fatigue_effects[key][stat] = round(float(row["value"]), 4)
 
     prev_level = {}
-    for fatigue_level in fatigue_order:
+    for fatigue_level, _ in fatigue_order_limits:
+        if fatigue_level == "fresh" or fatigue_level == "max":  # todo: deal better with edge cases
+            continue
         for stat in prev_level:
             if stat not in fatigue_effects[fatigue_level]:
                 fatigue_effects[fatigue_level][stat] = prev_level[stat]
@@ -1317,6 +1341,7 @@ def get_fatigue_effects(fatigue_order):
 # missile range: icon_stat_range
 # reload time: icon_stat_reload_time
 # ammo: icon_stat_ammo
+# todo: add melee non-ap and explosion non-ap icons, used in ranged dmg and melee dmg default tooltips
 # armour: ui/skins/default/icon_stat_armour
 # attack: ui/skins/default/icon_stat_attack
 # defence: ui/skins/default/icon_stat_defence
@@ -1335,7 +1360,7 @@ def get_fatigue_effects(fatigue_order):
 # ranged res: ui/campaign ui/effect_bundles/resistance_missile
 # fire res: ui/campaign ui/effect_bundles/resistance_fire
 
-def stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_icons):
+def stat_descriptions(kv_rules, kv_morale, fatigue_order_limits, fatigue_effects, stat_icons):
     kv_fatigue = read_column_to_dict(TWDBReader("_kv_fatigue_tables"), "key", "value")
 
     with TWLocDBReader("unit_stat_localisations") as db_reader:
@@ -1408,11 +1433,14 @@ def stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_
 
             if key == "unit_stat_localisations_tooltip_text_scalar_speed":
                 speed_text = "Fatigue mechanics: ||"
-                speed_text += ''
-                for fatigue_level in fatigue_order:
-                    speed_text += fatigue_level + ": "
+
+                for fatigue_level, _ in fatigue_order_limits:
+                    if fatigue_level == "fresh" or fatigue_level == "max":  # todo: deal better with edge cases
+                        continue
+                    speed_text += fatigue_level.replace("_", " ") + ": "
                     for stat in fatigue_effects[fatigue_level]:
-                        speed_text += " " + stat_icons[stat] + "" + stat_str(float(fatigue_effects[fatigue_level][stat]) * 100) + "%"
+                        if float(fatigue_effects[fatigue_level][stat]) * 100 < 100: # check if the stat is actually bad
+                            speed_text += " " + stat_icons[stat] + "" + stat_str(float(fatigue_effects[fatigue_level][stat]) * 100) + "%"
                     speed_text += '||'
 
                 speed_text += " || Tiring/Resting per 1/10 second: ||"
@@ -1429,7 +1457,15 @@ def stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_
                     #       run 9 rank up hill, it should tire them if after
                     # todo: is movement penalty only up hill? is it positive downhill?
                     # todo: what is 'steep' exactly?
-                    # todo: add point limit for each fatigue level?
+
+                counter = 0
+                speed_text += " || Fatigue thresholds: ||"
+                for fatigue_level, point_limit in fatigue_order_limits:
+                    counter += 1
+                    speed_text += fatigue_level.replace("_", " ") + ": " + stat_str(str(point_limit).rstrip('0').rstrip('.')) + " "
+                    if counter >= len(fatigue_order_limits) / 2:
+                        counter = 0
+                        speed_text += '||'
 
                 new_row["text"] = speed_text
 
@@ -1487,19 +1523,17 @@ def attribute_descriptions(kv_morale):
                 new_text += "next terror immunity lasts for " + stat_str(kv_morale["morale_shock_rout_immunity_timer"]) + "s"
             if key == "unit_attributes_bullet_text_encourages":
                 new_text += "||encourage aura " + " full effect range " + stat_str(kv_morale["general_aura_radius"]) + "m linear drop to 0 at " + stat_str(float(kv_morale["general_aura_radius"]) * float(kv_morale["inspiration_radius_max_effect_range_modifier"])) + "m||"
-                new_text += "general's effect in full effect range " + smart_str(
-                    kv_morale["general_inspire_effect_amount_min"]) + '||'
-                new_text += "encourage unit's effect in full effect range " + smart_str(
-                    kv_morale["unit_inspire_effect_amount"])
-            if key == "unit_attributes_bullet_text_strider":
-                new_text += "||this includes speed decrease on slopped terrain, melee and missile damage reduction from being downhill, ground_stat_type, fatigue penalties from terrain, etc."
+                new_text += "general's effect in full effect range " + smart_str(kv_morale["general_inspire_effect_amount_min"]) + '||'
+                new_text += "encourage unit's effect in full effect range " + smart_str(kv_morale["unit_inspire_effect_amount"])
+            if key == "unit_attributes_bullet_text_strider":  # todo: check that, the dmg ignore sounds OP to be honest
+                new_text += "||this includes speed decrease on slopped terrain, melee and missile damage reduction from being downhill, ground type, fatigue penalties from terrain, etc."
             for s in stat:
                 new_text += '||' + s + ": " + stat_str(stat[s])
             new_row["text"] += new_text
         db_writer.write()
 
 
-def random_localisation_strings(kv_rules, fatigue_order, fatigue_effects, stat_icons):
+def random_localisation_strings(kv_rules, fatigue_order_limits, fatigue_effects, stat_icons):
     with TWLocDBReader("random_localisation_strings") as db_reader:
         db_writer = db_reader.make_writer()
         for new_row in db_reader.rows_iter:
@@ -1507,10 +1541,15 @@ def random_localisation_strings(kv_rules, fatigue_order, fatigue_effects, stat_i
             new_text = ""
             key = new_row["key"]
 
+            # todo: does the animation of holding up the shield matter? units in melee and shootign hybrids don't do it
             if key == "random_localisation_strings_string_modifier_icon_tooltip_shield":
                 new_text += "|| Shields only block projectiles from the front in a " + stat_str(float(kv_rules["shield_defence_angle_missile"]) * 2) + "° arc"
+
+            # I think this gets the description in the battle UI to list the stats after the units' fatigue level
             if "random_localisation_strings_string_fatigue" in key:
-                for fatigue_level in fatigue_order:
+                for fatigue_level, _ in fatigue_order_limits:
+                    if fatigue_level == "fresh" or fatigue_level == "max":  # todo: deal better with edge cases
+                        continue
                     if ("fatigue_" + fatigue_level) not in key:
                         continue
                     for stat in fatigue_effects[fatigue_level]:
@@ -1577,10 +1616,10 @@ def component_texts(stat_icons):
 
 def main():
     # todo: check of files exist and run if not
-    # todo: split into 2 runner files, one unpack and one regenerate, waiting takes forever...
-    reload_data = True
-    if reload_data:
+    if do_rebuild == "True":
         extract_packfiles()
+        # todo: this is not the part that causes the extract... :( i need TSV
+        #       I need TSV blocking for that and hope I dont break things
 
     # unit_abilities localizations
     unit_ability_loc_reader = TWLocDBReader("unit_abilities")
@@ -1592,8 +1631,6 @@ def main():
     missile_weapon_junctions, missile_weapon_for_junction = get_missile_weapon_junctions()
 
     projectiles_explosions = read_to_dict(TWDBReader("projectiles_explosions_tables"))
-
-    fatigue_order = ["active", "winded", "tired", "very_tired", "exhausted"]
 
     stat_icons = {"accuracy": "accuracy", "armour": icon("icon_stat_armour"),
                   "charge_bonus": icon("icon_stat_charge_bonus"), "charging": icon("icon_stat_charge_bonus"),
@@ -1612,15 +1649,16 @@ def main():
     ability_descriptions(unit_ability_loc_reader, unit_ability_loc_writer, projectile_types, ability_details,
                          land_unit_to_spawn_info, projectiles_explosions)
 
-    fatigue_effects = get_fatigue_effects(fatigue_order)
+    fatigue_order_limits = get_fatigue_order_limits()
+    fatigue_effects = get_fatigue_effects(fatigue_order_limits)
 
     component_texts(stat_icons)
 
-    stat_descriptions(kv_rules, kv_morale, fatigue_order, fatigue_effects, stat_icons)
+    stat_descriptions(kv_rules, kv_morale, fatigue_order_limits, fatigue_effects, stat_icons)
 
     attribute_descriptions(kv_morale)
 
-    random_localisation_strings(kv_rules, fatigue_order, fatigue_effects, stat_icons)
+    random_localisation_strings(kv_rules, fatigue_order_limits, fatigue_effects, stat_icons)
 
     make_package()
 
