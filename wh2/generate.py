@@ -18,7 +18,7 @@ arg_parser = argparse.ArgumentParser(description="Generates the mod packfile to 
 arg_parser.add_argument("path_to_rpfm_cli", help="path to rpfm_cli.exe used for extracting and creating mod files")
 arg_parser.add_argument("-g", dest="path_to_game", default=game_path, help=f"path to the main directory of {game_name}(default: {game_path})")
 arg_parser.add_argument("-i", dest="install_path", default=install_path, help=f"path where to install the mod file (default: {install_path})")
-arg_parser.add_argument("-r", dest="do_rebuild", default=True, help="Rebuild CSV files?")
+arg_parser.add_argument("-r", dest="do_rebuild", default=True, help="Rebuild CSV files?")  # todo: make this work
 
 init_args = arg_parser.parse_args()
 
@@ -537,7 +537,8 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
             # todo: estimate area outside of calibration distance, 100m for example, 120...
             projectile_text += indent_str(indent + 2) + "normalized: " + "area " + derived_stat_str(normalized_area) + " at " + derived_stat_str(normalization_distance) + "m (compare only like to like)" + "\\\\n"
         else:
-            projectile_text += indent_str(indent + 2) + "calibration range too short, unit can hardly be considered ranged" + "\\\\n"
+            projectile_text += indent_str(indent + 2) + "calibration is too short to accurately normalize" + "\\\\n"
+            # some units (pistol gunnery mob) have 90 range but shit calibration (they are obviously inaccurate, right?)
 
         projectile_text += named_stat("accuracy",  float(projectile_row["marksmanship_bonus"]) + float(unit["accuracy"]), indent)
         reload_time = float(projectile_row["base_reload_time"]) * ((100 - float(unit["accuracy"])) * 0.01)  # todo: this looks wrong. accuracy for reload?
@@ -1319,9 +1320,11 @@ def get_fatigue_effects(fatigue_order_limits):
         for row in db_reader.rows_iter:
             key = row["fatigue_level"].replace("threshold_", "", 1)
             stat = row["stat"].replace("scalar_", "", 1).replace("stat_", "", 1)
-            if key not in fatigue_effects:
-                fatigue_effects[key] = {}
-            fatigue_effects[key][stat] = round(float(row["value"]), 4)
+            stat_value = round(float(row["value"]), 4)
+            if stat_value != 1:  # if the stat is actually debuffed
+                if key not in fatigue_effects:
+                    fatigue_effects[key] = {}
+                fatigue_effects[key][stat] = stat_value
 
     prev_level = {}
     for fatigue_level, _ in fatigue_order_limits:
@@ -1439,8 +1442,7 @@ def stat_descriptions(kv_rules, kv_morale, fatigue_order_limits, fatigue_effects
                         continue
                     speed_text += fatigue_level.replace("_", " ") + ": "
                     for stat in fatigue_effects[fatigue_level]:
-                        if float(fatigue_effects[fatigue_level][stat]) * 100 < 100: # check if the stat is actually bad
-                            speed_text += " " + stat_icons[stat] + "" + stat_str(float(fatigue_effects[fatigue_level][stat]) * 100) + "%"
+                            speed_text += " " + stat_icons[stat] + "" + stat_str(fatigue_effects[fatigue_level][stat] * 100) + "%"
                     speed_text += '||'
 
                 speed_text += " || Tiring/Resting per 1/10 second: ||"
@@ -1455,6 +1457,7 @@ def stat_descriptions(kv_rules, kv_morale, fatigue_order_limits, fatigue_effects
                     speed_text += "moving on " + fatigue_names[fatigue_index] + ' ' + smart_str(float(kv_fatigue[kv_fatigue_vals[fatigue_index]]) + 100, affinity=-1) + '%' + '||'
                     # todo: is the experience reduction before the % or after?
                     #       run 9 rank up hill, it should tire them if after
+                    #       can units stay indefinably fresh while walking up a mountain?
                     # todo: is movement penalty only up hill? is it positive downhill?
                     # todo: what is 'steep' exactly?
 
@@ -1553,7 +1556,7 @@ def random_localisation_strings(kv_rules, fatigue_order_limits, fatigue_effects,
                     if ("fatigue_" + fatigue_level) not in key:
                         continue
                     for stat in fatigue_effects[fatigue_level]:
-                        new_text += " " + stat_icons[stat] + " " + stat_str(float(fatigue_effects[fatigue_level][stat]) * 100) + "%"
+                        new_text += " " + stat_icons[stat] + stat_str(fatigue_effects[fatigue_level][stat] * 100) + "%"
             new_row["text"] += new_text
         db_writer.write()
 
