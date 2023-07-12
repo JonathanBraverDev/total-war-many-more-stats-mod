@@ -531,6 +531,7 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
     if unit is not None:  # todo: handle non-unit stuff a bit better
         # normalized accuracy for all (proper) ranged units
         normalization_distances = (50, 75, 100, 120)  # first value doubles as the minimal range for evaluation
+        # todo: separate list for arty (or other long range units) with more relevant ranges
         max_range_base = float(projectile_row["effective_range"])  # I think that range boosts have no effect on Calibration distance/area
 
         if float(calibration_distance) <= normalization_distances[0]:  # unique flavortext
@@ -546,13 +547,12 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
                     normalization_factor = norm_dist / float(calibration_distance)
                     normalized_area = float(calibration_area) * normalization_factor
                     # todo: add more accurate 'score' at the calibration distance, i want something linear
-                    # todo: estimate area outside of calibration distance, 100m for example, 120...
+                    # todo: estimate area outside of calibration distance
                     normalized_strings.append(derived_stat_str(normalized_area) + " at " + derived_stat_str(norm_dist) + "m")
                 else:
-                    projectile_text += indent_str(indent + 4) + ", ".join(normalized_strings) + "\\\\n"
-                    projectile_text += indent_str(indent + 4) + "calibrated for " + derived_stat_str(100 * float(calibration_distance) / max_range_base) + "% of the range" + "\\\\n"
-                    break  # todo: this doesn't work for some units, mainly artillery and some campaign exclusive
-                           # the 'normalized:' shows up but NOTHING from the loop
+                    break
+            projectile_text += indent_str(indent + 4) + ", ".join(normalized_strings) + "\\\\n"
+            projectile_text += indent_str(indent + 4) + "calibrated for " + derived_stat_str(100 * float(calibration_distance) / max_range_base) + "% of the range" + "\\\\n"
 
         projectile_text += named_stat("accuracy",  float(projectile_row["marksmanship_bonus"]) + float(unit["accuracy"]), indent)
         reload_time = float(projectile_row["base_reload_time"]) * ((100 - float(unit["accuracy"])) * 0.01)  # todo: this looks wrong. accuracy for reload?
@@ -588,7 +588,7 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
         # - warp lightning: sight low, max elevation 50, fixed elev 45 vel 110, spin: none mass: 300 grav 6
         # - poison wind mortar globe: type artillery spin axe, sight fixed, max elevation 56, vel 90 grav -1, mass 25, fixed elev 50
         # - ratling gun: type musket spin none, max elevation 88, vel 120, grav -1, mass 5 fix elev 45
-        trajectory = "trajectory: "
+        trajectory = "trajectory: " # todo: this is BY FAR the longest original line, i think it warps the tooltip
         trajectory += stat_str(projectile_row["trajectory_sight"])
         trajectory += " vel " + stat_str(projectile_row["muzzle_velocity"])
         trajectory += " max_angle " + stat_str(projectile_row["max_elevation"])
