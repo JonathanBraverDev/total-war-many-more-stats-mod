@@ -27,6 +27,8 @@ game_path = init_args.path_to_game
 install_path = init_args.install_path
 do_rebuild = init_args.do_rebuild
 
+# todo: some tooltips for skaven clan Moulder are broken, things in the lab and unit stability
+# todo: alternate ranged weapon thingy ruins some skill descriptions and sometimes appears for seemingly no reason
 
 def run_rpfm(packfile, *args):
     subprocess.run([rpfmcli_path, "-v", "-g", game_name, "-p", packfile, *args], check=True)
@@ -528,22 +530,33 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
 
     if unit is not None:  # todo: handle non-unit stuff a bit better
         # normalized accuracy for all (proper) ranged units
-        normalization_distance = 75
-        if float(calibration_distance) >= normalization_distance:
-            normalization_factor = normalization_distance / float(calibration_distance)
-            normalized_area = float(calibration_area) * normalization_factor
-            # todo: add 'calibration coverage', requires the unit's max rage
-            # todo: add more accurate 'score' at the calibration distance, i want something linear
-            # todo: estimate area outside of calibration distance, 100m for example, 120...
-            projectile_text += indent_str(indent + 2) + "normalized: " + "area " + derived_stat_str(normalized_area) + " at " + derived_stat_str(normalization_distance) + "m (compare only like to like)" + "\\\\n"
+        normalization_distances = (50, 75, 100, 120)  # first value doubles as the minimal range for evaluation
+        max_range_base = float(projectile_row["effective_range"])  # I think that range boosts have no effect on Calibration distance/area
+
+        if float(calibration_distance) <= normalization_distances[0]:  # unique flavortext
+            if float(calibration_area) < 1:
+                projectile_text += indent_str(indent + 2) + "they can aim quite well, just not very far" + "\\\\n"
+            else:
+                projectile_text += indent_str(indent + 2) + "might hit the side of a barn if it were close enough" + "\\\\n"
         else:
-            projectile_text += indent_str(indent + 2) + "calibration is too short to accurately normalize" + "\\\\n"
-            # some units (pistol gunnery mob) have 90 range but shit calibration (they are obviously inaccurate, right?)
+            projectile_text += indent_str(indent + 2) + "normalized: (compare only similar unit types)" + "\\\\n"
+            normalized_strings = []
+            for norm_dist in normalization_distances:
+                if float(calibration_distance) >= norm_dist:
+                    normalization_factor = norm_dist / float(calibration_distance)
+                    normalized_area = float(calibration_area) * normalization_factor
+                    # todo: add more accurate 'score' at the calibration distance, i want something linear
+                    # todo: estimate area outside of calibration distance, 100m for example, 120...
+                    normalized_strings.append(derived_stat_str(normalized_area) + " at " + derived_stat_str(norm_dist) + "m")
+                else:
+                    projectile_text += indent_str(indent + 4) + ", ".join(normalized_strings) + "\\\\n"
+                    projectile_text += indent_str(indent + 4) + "calibrated for " + derived_stat_str(100 * float(calibration_distance) / max_range_base) + "% of the range" + "\\\\n"
+                    break  # todo: this doesn't work for some units, mainly artillery and some campaign exclusive
+                           # the 'normalized:' shows up but NOTHING from the loop
 
         projectile_text += named_stat("accuracy",  float(projectile_row["marksmanship_bonus"]) + float(unit["accuracy"]), indent)
         reload_time = float(projectile_row["base_reload_time"]) * ((100 - float(unit["accuracy"])) * 0.01)  # todo: this looks wrong. accuracy for reload?
         projectile_text += indent_str(indent) + "reload: " + "skill " + stat_str(unit["reload"]) + " time " + stat_str(reload_time) + "s (base" + stat_str(projectile_row["base_reload_time"]) + "s)" + "\\\\n"
-        # print(float(projectile_row["base_reload_time"]), ((100 - float(unit["accuracy"])) * 0.01), unit["reload"])
 
     category = projectile_row["category"]
     if category == "misc" or category == "artillery":
@@ -558,13 +571,13 @@ def missile_stats(projectile_row, unit, projectile_types, projectiles_explosions
     if projectile_row["can_roll"] == "true":
         impact += "roll "
     if projectile_row["shockwave_radius"] != "-1.0":
-        impact += "shockwave radius " + projectile_row["shockwave_radius"]
+        impact += "shockwave radius " + str(round(float(projectile_row["shockwave_radius"]), 4))
 
     # todo: add CP calculation/values to units (Combat Potential)
     #       calculation for ranged cp
     #       melee cp
     #       and... campaign modifiers... that's impossible dynamically but there must be A formula i can show
-    if trajectory:  # todo: fix addition of many empty lines, some units with trajectory dont have the issue, not cause
+    if trajectory:  # todo: fix addition of many empty lines, some units with trajectory dont have the issue, not cause, seems to be related to the '||' char, maybe
         # sight - celownik
         # fixed - attached to the weapon
         # fixed trajectory != fixed sight?
